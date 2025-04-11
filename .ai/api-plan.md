@@ -308,7 +308,13 @@ Handles the triggering of the AI generation process.
     ```
 
 * **Success Codes:** `201 Created`
-* **Error Codes:** `400 Bad Request` (Invalid input, AI service error), `401 Unauthorized`, `429 Too Many Requests` (Rate limiting), `500 Internal Server Error`
+* **Error Codes:**
+  * `400 Bad Request` (Invalid input, AI service error)
+  * `401 Unauthorized`
+  * `402 Payment Required` (AI service requires payment/credits)
+  * `429 Too Many Requests` (Rate limiting)
+  * `500 Internal Server Error`
+  * `502 Bad Gateway` (AI service unavailable or error)
 
 ---
 

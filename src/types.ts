@@ -54,6 +54,22 @@ export interface GenerateFlashcardCandidatesCommand {
 }
 
 /**
+ * GenerateAiCandidatesResponseDto defines the structure for a successful response
+ * from the AI candidate generation endpoint.
+ */
+export interface GenerateAiCandidatesResponseDto {
+  data: AICandidateDTO[];
+}
+
+/**
+ * ApiErrorResponseDto defines the structure for standardized API error responses.
+ */
+export interface ApiErrorResponseDto {
+  message: string;
+  errors?: Record<string, string[] | undefined> | string; // Can be Zod errors or a general error string
+}
+
+/**
  * GenerationStatisticsDTO represents the statistics for flashcard generation.
  * This includes total counts for generated and accepted events.
  */
