@@ -21,45 +21,33 @@ Architektura interfejsu użytkownika (UI) dla aplikacji Fiszki AI opiera się na
 
 * **Ścieżka widoku:** `/` (po zalogowaniu)
 * **Główny cel:** Zapewnienie centralnego punktu dostępu do kluczowej funkcji generowania fiszek AI na podstawie wklejonego tekstu.
-* **Kluczowe informacje do wyświetlenia:** Formularz do wklejenia tekstu i generowania fiszek AI.
-* **Kluczowe komponenty widoku:** `AIGenerationForm` (React), `Textarea` (Shadcn/ui), `Button` (Shadcn/ui - "Generuj Fiszki"), `Toast` (Shadcn/ui - dla błędów generowania AI).
+* **Kluczowe informacje do wyświetlenia:** Formularz do wklejenia tekstu i generowania fiszek AI, a poniżej – lista wygenerowanych kandydatów.
+* **Kluczowe komponenty widoku:**
+  * `AIGenerationForm` (React) – formularz do wklejania tekstu.
+  * Lista kandydatów (np. `AICandidateList` oraz `AICandidateListItem`) wyświetlana bezpośrednio pod formularzem.
+  * Elementy sterujące akcjami na kandydatów: przyciski "Akceptuj", "Odrzuć", „Edytuj” wykonywane inline bez użycia modal.
+  * Opcja zbiorczego zapisywania wszystkich kandydatów na raz.
+  * `Toast` (Shadcn/ui – dla błędów generowania AI i operacji na fiszkach).
 * **UX, dostępność i względy bezpieczeństwa:**
-  * UX: Szybki dostęp do głównej funkcji generowania. Wyraźne wskazanie stanu ładowania podczas generowania AI. Informacja zwrotna po zakończeniu generowania (np. Toast, przekierowanie do Kandydatów AI).
-  * Dostępność: Poprawne etykiety, obsługa klawiatury dla formularza i przycisków.
-  * Bezpieczeństwo: Walidacja danych wejściowych formularza AI (klient/serwer). Ograniczenie liczby żądań generowania (rate limiting po stronie API).
+  * UX: Po wygenerowaniu fiszek lista pojawia się pod formularzem. Użytkownik może edytować pojedyncze fiszki inline, zapisać je lub odrzucić zmiany, a także zapisać wszystkie kandydatów jednocześnie.
+  * Dostępność: Wyraźne etykiety pól, obsługa klawiatury dla formularza i przycisków inline. Odpowiednie atrybuty ARIA.
+  * Bezpieczeństwo: Walidacja danych wejściowych formularza AI (klient/serwer). Ograniczenie liczby żądań generowania (rate limiting po stronie API). Operacje autoryzowane po stronie API (RLS). Walidacja danych w edycji fiszki (klient/serwer).
 
 ### Widok: Moje Fiszki
 
 * **Ścieżka widoku:** `/flashcards`
 * **Główny cel:** Wyświetlanie, zarządzanie (edycja, usuwanie) i tworzenie manualne zapisanych fiszek użytkownika.
-* **Kluczowe informacje do wyświetlenia:** Lista zapisanych fiszek (przód, tył, źródło), Opcje sortowania, Paginacja, Przycisk do tworzenia nowej fiszki manualnie.
-* **Kluczowe komponenty widoku:** `FlashcardList` (React), `FlashcardListItem` (React, używający `Card` z Shadcn/ui), `Pagination` (Shadcn/ui), `DropdownMenu`/`Select` (Shadcn/ui - do sortowania), `Button` (Shadcn/ui - "Dodaj manualnie", "Edytuj", "Usuń"), `Dialog` (Shadcn/ui - do potwierdzenia usunięcia, ewentualnie do formularza tworzenia/edycji), `FlashcardForm` (React - w modalu lub osobnym widoku), `Toast` (Shadcn/ui - dla błędów operacji CRUD).
+* **Kluczowe informacje do wyświetlenia:** Lista zapisanych fiszek (przód, tył, źródło), opcje sortowania, paginacja, przycisk do tworzenia nowej fiszki manualnie.
+* **Kluczowe komponenty widoku:**
+  * `FlashcardList` (React) oraz `FlashcardListItem` (React, używający `Card` z Shadcn/ui) – lista wyświetlana inline.
+  * Edycja fiszek odbywa się inline (bez użycia modal) przy użyciu elementów edycji, które umożliwiają modyfikację treści oraz zapis lub odrzucenie zmian.
+  * `Pagination` (Shadcn/ui) oraz `DropdownMenu`/`Select` (Shadcn/ui – do sortowania).
+  * `Button` (Shadcn/ui – "Dodaj manualnie", "Edytuj", "Usuń") – przyciski działające inline.
+  * `Toast` (Shadcn/ui – dla błędów operacji CRUD).
 * **UX, dostępność i względy bezpieczeństwa:**
-  * UX: Czytelna lista fiszek. Łatwy dostęp do akcji. Wyraźne stany ładowania i puste stany. Potwierdzenie przed usunięciem. Paginacja i sortowanie z przeładowaniem (MVP).
-  * Dostępność: Poprawna struktura listy, obsługa klawiatury dla przycisków, paginacji, sortowania. Odpowiednie atrybuty ARIA dla elementów interaktywnych i kart.
-  * Bezpieczeństwo: Operacje CRUD autoryzowane po stronie API (RLS). Walidacja danych w `FlashcardForm` (klient/serwer).
-
-### Widok: Kandydaci AI
-
-* **Ścieżka widoku:** `/ai-candidates`
-* **Główny cel:** Umożliwienie użytkownikowi przeglądania, edycji, akceptacji lub odrzucenia fiszek wygenerowanych przez AI.
-* **Kluczowe informacje do wyświetlenia:** Lista kandydatów na fiszki (przód, tył, oznaczenie '@'), Opcje sortowania, Paginacja.
-* **Kluczowe komponenty widoku:** `AICandidateList` (React), `AICandidateListItem` (React, używający `Card` z Shadcn/ui), `Pagination` (Shadcn/ui), `DropdownMenu`/`Select` (Shadcn/ui - do sortowania), `Button` (Shadcn/ui - "Akceptuj", "Odrzuć", "Edytuj"), `Dialog` (Shadcn/ui - ewentualnie do formularza edycji), `FlashcardForm` (React - w modalu lub osobnym widoku do edycji), `Toast` (Shadcn/ui - dla błędów operacji).
-* **UX, dostępność i względy bezpieczeństwa:**
-  * UX: Wyraźne rozróżnienie kandydatów od zapisanych fiszek (ikona '@'). Łatwy dostęp do akcji akceptacji/odrzucenia/edycji. Stany ładowania i puste stany. Paginacja i sortowanie z przeładowaniem (MVP).
-  * Dostępność: Poprawna struktura listy, obsługa klawiatury dla przycisków, paginacji, sortowania. Odpowiednie atrybuty ARIA.
-  * Bezpieczeństwo: Operacje autoryzowane po stronie API (RLS). Walidacja danych w `FlashcardForm` podczas edycji (klient/serwer).
-
-### Widok: Tworzenie / Edycja Fiszki (Manualnej lub Kandydata AI)
-
-* **Ścieżka widoku:** Może być realizowany jako modal (`Dialog`) w widokach "Moje Fiszki" / "Kandydaci AI" lub jako osobna strona np. `/flashcards/new`, `/flashcards/{id}/edit`, `/ai-candidates/{id}/edit`. Decyzja: Użycie modala (`Dialog`) dla MVP.
-* **Główny cel:** Umożliwienie użytkownikowi wprowadzenia lub modyfikacji treści fiszki (pola "przód" i "tył").
-* **Kluczowe informacje do wyświetlenia:** Formularz z polami "przód" i "tył", Liczniki znaków dla obu pól.
-* **Kluczowe komponenty widoku:** `FlashcardForm` (React), `Input` (Shadcn/ui), `Textarea` (Shadcn/ui), `Button` (Shadcn/ui - "Zapisz", "Anuluj"), Komponent licznika znaków.
-* **UX, dostępność i względy bezpieczeństwa:**
-  * UX: Natychmiastowa informacja zwrotna o przekroczeniu limitu znaków (inline). Widoczne liczniki znaków. Jasne przyciski akcji.
-  * Dostępność: Poprawne etykiety pól, powiązanie komunikatów błędów z polami (aria-describedby), obsługa klawiatury.
-  * Bezpieczeństwo: Walidacja limitów znaków i innych ograniczeń po stronie klienta (Zod) i serwera.
+  * UX: Lista fiszek jest wyświetlana w sposób czytelny, a opcja edycji odbywa się bezpośrednio na elemencie listy (inline). Użytkownik widzi także wyraźne stany ładowania i stany pustej listy.
+  * Dostępność: Odpowiednia struktura listy, obsługa klawiatury dla przycisków i pól inline oraz zgodność z zasadami ARIA.
+  * Bezpieczeństwo: Operacje CRUD autoryzowane po stronie API (RLS). Walidacja danych w edycji fiszki prowadzona zarówno po stronie klienta (Zod) jak i serwera.
 
 ### Widok: Sesja Powtórek (Spaced Repetition)
 
@@ -90,15 +78,14 @@ Architektura interfejsu użytkownika (UI) dla aplikacji Fiszki AI opiera się na
 1. **Logowanie/Rejestracja:** Użytkownik trafia na `/login` lub `/register`. Wprowadza dane, formularz jest walidowany (`LoginForm`/`RegisterForm`). Po sukcesie, middleware Astro ustawia ciasteczko i użytkownik jest przekierowywany na `/`.
 2. **Panel Główny (Dashboard):** Użytkownik widzi `/`. Wkleja tekst do `AIGenerationForm` i klika "Generuj Fiszki". Wyświetlany jest stan ładowania. Hook `useAIGeneration` wysyła żądanie `POST /api/ai/generate`.
 3. **Generowanie (Backend):** API endpoint przetwarza tekst, wywołuje AI, zapisuje kandydatów w Supabase.
-4. **Informacja zwrotna:** Po sukcesie API zwraca listę kandydatów (lub pustą listę). Hook `useAIGeneration` aktualizuje stan. Użytkownik może zostać przekierowany na `/ai-candidates` lub otrzymać powiadomienie `Toast`.
-5. **Kandydaci AI:** Użytkownik przechodzi na `/ai-candidates`. Widzi listę kandydatów (`AICandidateList` / `AICandidateListItem`). Hook `useAICandidates` pobiera dane przez `GET /api/ai-candidates`.
-6. **Recenzja Kandydatów:**
+4. **Informacja zwrotna:** Po sukcesie API zwraca listę kandydatów (lub pustą listę). Hook `useAIGeneration` aktualizuje stan. Użytkownik może otrzymać powiadomienie `Toast`.
+5. **Recenzja Kandydatów:**
     * **Akceptacja:** Użytkownik klika "Akceptuj" na `AICandidateListItem`. Wywoływane jest żądanie `POST /api/ai-candidates/{id}/accept`. Kandydat znika z listy. Może pojawić się `Toast` potwierdzający.
     * **Odrzucenie:** Użytkownik klika "Odrzuć". Wywoływane jest żądanie `DELETE /api/ai-candidates/{id}`. Kandydat znika z listy.
-    * **Edycja:** Użytkownik klika "Edytuj". Otwiera się `Dialog` z `FlashcardForm` wypełnionym danymi kandydata. Użytkownik edytuje, walidacja działa. Klika "Zapisz". Wywoływane jest żądanie `PUT /api/ai-candidates/{id}`. Dialog się zamyka, lista jest odświeżana.
-7. **Moje Fiszki:** Użytkownik przechodzi na `/flashcards`. Widzi zaakceptowane fiszki (`FlashcardList` / `FlashcardListItem`). Hook `useFlashcards` pobiera dane przez `GET /api/flashcards`.
-8. **Zarządzanie Fiszkami:** Użytkownik może edytować (podobnie jak kandydata, przez `Dialog` z `FlashcardForm`, wywołując `PUT /api/flashcards/{id}`) lub usuwać (przycisk "Usuń", `Dialog` potwierdzający, wywołanie `DELETE /api/flashcards/{id}`).
-9. **Sesja Powtórek:** Użytkownik przechodzi na `/review` (np. przez link w pasku bocznym) i rozpoczyna sesję.
+    * **Edycja:** Użytkownik klika "Edytuj". Pojawiają się pola inline-edit `FlashcardForm` na fiszcze przód i tył z wypełnionym danymi kandydata. Użytkownik edytuje, walidacja działa. Klika "Zapisz". Wywoływane jest żądanie`PUT /api/ai-candidates/{id}`. Edycja inline się zamyka.
+6. **Moje Fiszki:** Użytkownik przechodzi na `/flashcards`. Widzi zaakceptowane fiszki (`FlashcardList` / `FlashcardListItem`). Hook `useFlashcards` pobiera dane przez `GET /api/flashcards`.
+7. **Zarządzanie Fiszkami:** Użytkownik może edytować (podobnie jak kandydata, inline-edit z `FlashcardForm`, wywołując `PUT /api/flashcards/{id}`) lub usuwać (przycisk "Usuń", `Dialog` potwierdzający, wywołanie `DELETE /api/flashcards/{id}`).
+8. **Sesja Powtórek:** Użytkownik przechodzi na `/review` (np. przez link w pasku bocznym) i rozpoczyna sesję.
 
 **Przepływ Manualnego Tworzenia:**
 
@@ -115,7 +102,6 @@ Architektura interfejsu użytkownika (UI) dla aplikacji Fiszki AI opiera się na
 * **Pasek Boczny (Sidebar):** Zaimplementowany jako komponent React (`SidebarNav`) używający `NavMenu` z Shadcn/ui. Zawiera linki nawigacyjne do głównych widoków:
   * Panel Główny (`/`)
   * Moje Fiszki (`/flashcards`)
-  * Kandydaci AI (`/ai-candidates`)
   * Sesja Powtórek (`/review`)
   * Ustawienia (`/settings`)
   * Wyloguj (przycisk/link wywołujący endpoint API do wylogowania lub czyszczący stan po stronie klienta, jeśli to konieczne - choć główna logika jest serwerowa).
