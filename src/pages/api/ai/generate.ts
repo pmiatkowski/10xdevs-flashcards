@@ -34,7 +34,7 @@ export async function POST({ request, locals }: APIContext): Promise<Response> {
       });
     }
     command = validationResult.data;
-  } catch (error) {
+  } catch {
     const errorResponse: ApiErrorResponseDto = {
       message: "Invalid JSON body",
     };

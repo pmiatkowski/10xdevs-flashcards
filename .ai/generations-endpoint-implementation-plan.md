@@ -91,10 +91,7 @@ Ten punkt końcowy (`POST /api/ai/generate`) umożliwia uwierzytelnionym użytko
 - **Uwierzytelnianie:** Middleware musi rygorystycznie weryfikować tokeny JWT Supabase. Punkt końcowy musi potwierdzić obecność `context.locals.user`.
 - **Autoryzacja:** Wszystkie operacje na bazie danych (wstawianie do `ai_candidates` i `generation_stats`) muszą używać `user_id` z uwierzytelnionego tokenu (`context.locals.user.id`). Polegać na politykach RLS Supabase, aby zapewnić, że użytkownicy mogą tworzyć zasoby tylko dla siebie.
 - **Walidacja danych wejściowych:** Użyj `zod` do walidacji `sourceText`. Rozważ ograniczenie maksymalnej długości, aby zapobiec nadużyciom i potencjalnym atakom DoS na usługę AI. Bądź świadomy potencjalnych ataków typu prompt injection na usługę AI.
-- **Zarządzanie kluczami API i kredytami:** 
-  - Klucz API OpenRouter musi być bezpiecznie przechowywany jako zmienna środowiskowa po stronie serwera i nigdy nie może być ujawniony po stronie klienta.
-  - Należy monitorować stan kredytów/środków w usłudze AI i odpowiednio obsługiwać błędy 402 Payment Required.
-  - Rozważyć implementację powiadomień administracyjnych o niskim stanie kredytów.
+- **Zarządzanie kluczami API:** Klucz API OpenRouter musi być bezpiecznie przechowywany jako zmienna środowiskowa po stronie serwera i nigdy nie może być ujawniony po stronie klienta.
 - **Limitowanie żądań:** Zaimplementuj limitowanie żądań (np. za pomocą zewnętrznej usługi lub niestandardowej logiki), aby zapobiec nadużyciom punktu końcowego i usługi AI, zwracając `429 Too Many Requests`.
 - **Obsługa błędów zewnętrznych:** Bezpiecznie obsługuj błędy z usługi AI OpenRouter, unikając ujawniania wrażliwych informacji w komunikatach o błędach dla klienta.
 
