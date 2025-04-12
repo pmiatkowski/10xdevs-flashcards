@@ -52,7 +52,20 @@ async function callOpenRouterAPI(sourceText: string): Promise<OpenRouterCandidat
   }
 
   // Prosty prompt - do dopracowania
-  const prompt = `Na podstawie poniższego tekstu wygeneruj listę fiszek (przód i tył). Zwróć odpowiedź jako JSON w formacie tablicy obiektów [{ "front": "...", "back": "..." }]. Tekst:
+  const prompt = `Based on a given text, generate list of 5 flashcards (front and back).
+  Respond with a given JSON format [{ "front": "...", "back": "..." }].
+
+  ABSOLUTE CONTRAINTS:
+  - The front text must be less than 200 characters.
+  - The back text must be less than 500 characters.
+  - The front text must be unique.
+  - The back text must be unique.
+  - The front text must not contain any HTML tags.
+  - The back text must not contain any HTML tags.
+  - The front text must not contain any special characters.
+  - The back text must not contain any special characters.
+
+  Text:
 
 ${sourceText}`;
 

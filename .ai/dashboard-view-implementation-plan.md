@@ -91,77 +91,6 @@ Wymagane typy są już zdefiniowane w `src/types.ts`:
 * **Endpoint:** `POST /api/ai/generate`
 * **Akcja:** Wywoływana po kliknięciu przycisku "Generuj Fiszki" w `AIGenerationForm.tsx`.
 * **Implementacja:** Użycie standardowego `fetch` API wewnątrz asynchronicznej funkcji obsługi zdarzenia `onSubmit` formularza.
-
-    ```typescript
-    // Przykład w AIGenerationForm.tsx
-    import { useState } from 'react';
-    import { Button } from '@/components/ui/button';
-    import { Textarea } from '@/components/ui/textarea';
-    import { useToast } from '@/components/ui/use-toast'; // Załóżmy, że hook jest dostępny
-    import type { GenerateFlashcardCandidatesCommand, GenerateAiCandidatesResponseDto, ApiErrorResponseDto } from '@/types';
-
-    // ... wewnątrz komponentu
-    const { toast } = useToast();
-    const [sourceText, setSourceText] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-
-    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault();
-      if (!sourceText.trim()) {
-        toast({
-          title: "Błąd",
-          description: "Pole tekstowe nie może być puste.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      setIsLoading(true);
-      try {
-        const command: GenerateFlashcardCandidatesCommand = { sourceText };
-        const response = await fetch('/api/ai/generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(command),
-        });
-
-        if (response.status === 201) {
-          const result: GenerateAiCandidatesResponseDto = await response.json();
-          toast({
-            title: "Sukces!",
-            description: `Wygenerowano ${result.data.length} kandydatów na fiszki.`,
-          });
-          // Nawigacja do strony recenzji kandydatów
-          window.location.href = '/ai-candidates'; // Lub użycie navigate() z View Transitions
-        } else {
-          let errorMessage = `Błąd ${response.status}. Spróbuj ponownie.`;
-          try {
-            const errorData: ApiErrorResponseDto = await response.json();
-            errorMessage = errorData.message || errorMessage;
-            // Obsługa specyficznych kodów błędów
-            if (response.status === 402) errorMessage = "Wymagana płatność lub kredyty dla usługi AI.";
-            if (response.status === 429) errorMessage = "Przekroczono limit żądań. Spróbuj ponownie później.";
-          } catch (e) { /* Ignoruj błąd parsowania JSON błędu */ }
-
-          toast({
-            title: "Błąd generowania",
-            description: errorMessage,
-            variant: "destructive",
-          });
-        }
-      } catch (error) {
-        console.error("Network or fetch error:", error);
-        toast({
-          title: "Błąd sieci",
-          description: "Nie można połączyć się z serwerem. Sprawdź połączenie.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    ```
-
 * **Typy żądania:** `GenerateFlashcardCandidatesCommand` (`{ sourceText: string }`).
 * **Typy odpowiedzi:** `GenerateAiCandidatesResponseDto` (sukces), `ApiErrorResponseDto` (błąd).
 
@@ -177,7 +106,8 @@ Wymagane typy są już zdefiniowane w `src/types.ts`:
         * **Po sukcesie (201):**
             * `isLoading` ustawiane na `false`.
             * Wyświetlany jest toast sukcesu.
-            * Użytkownik jest przekierowywany na stronę `/ai-candidates` (lub inną skonfigurowaną stronę recenzji).
+            * Użytkownik pod formularzem pojawia się lista fiszek w 3 kolumnach
+            * Nad listą fiszek znajdują dwa guziki 'Zapisz wszystkie'. Użytkownik po kliknięciu może zapisać wszystkie fiszki z listy fiszek akceptować każdą po kolei.
         * **Po błędzie (inny status):**
             * `isLoading` ustawiane na `false`.
             * Wyświetlany jest toast błędu z odpowiednim komunikatem.
@@ -207,7 +137,7 @@ Wymagane typy są już zdefiniowane w `src/types.ts`:
 4. **Walidacja klienta:** W `handleSubmit` dodaj sprawdzenie, czy `sourceText` nie jest pusty. Jeśli jest, wyświetl toast błędu i przerwij funkcję. Powiąż atrybut `disabled` przycisku ze stanem `isLoading` oraz ewentualnie z pustym `sourceText`.
 5. **Integracja API:** W `handleSubmit`, zaimplementuj wywołanie `fetch` do `POST /api/ai/generate` z odpowiednim ciałem (`{ sourceText }`) i nagłówkami. Użyj `try...catch` do obsługi błędów sieciowych.
 6. **Obsługa odpowiedzi API:** W bloku `try`, sprawdź status odpowiedzi.
-    * Dla `response.status === 201`: Sparsuj odpowiedź, wyświetl toast sukcesu, wykonaj nawigację (`window.location.href = '/ai-candidates';`).
+    * Dla `response.status === 201`: Sparsuj odpowiedź, wyświetl toast sukcesu, wyświetl listę fiszek pod formularzem do generowania.
     * Dla innych statusów: Spróbuj sparsować `ApiErrorResponseDto`, wyświetl odpowiedni toast błędu.
 7. **Obsługa stanu ładowania:** Ustaw `isLoading` na `true` przed wywołaniem `fetch` i na `false` w bloku `finally`. Użyj stanu `isLoading` do wizualnego wskazania ładowania na przycisku.
 8. **Integracja z Astro:** W pliku `src/pages/index.astro`, zaimportuj i użyj komponentu `<AIGenerationForm client:load />` w odpowiednim miejscu w strukturze strony.
