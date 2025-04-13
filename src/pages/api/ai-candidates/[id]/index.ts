@@ -112,18 +112,6 @@ export async function PUT({ params, request, locals }: APIContext): Promise<Resp
 }
 
 export async function DELETE({ params, locals }: APIContext): Promise<Response> {
-  // 1. Get user from middleware
-  const user = locals.user;
-  if (!user) {
-    const errorResponse: ApiErrorResponseDto = {
-      message: "Unauthorized. Please log in to reject flashcard candidates.",
-    };
-    return new Response(JSON.stringify(errorResponse), {
-      status: 401,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
   // 2. Validate ID parameter
   const { id } = params;
   if (!id) {
