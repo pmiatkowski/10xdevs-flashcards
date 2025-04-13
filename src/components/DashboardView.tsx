@@ -253,7 +253,9 @@ export const DashboardView: React.FC = () => {
       }
 
       // Set saving state
-      setCandidates((prev) => prev.map((c) => (c.id === candidateId ? { ...c, isSaving: true } : c)));
+      setCandidates((prev) =>
+        prev.map((c) => (c.id === candidateId ? { ...c, source: "ai-edited", isSaving: true } : c))
+      );
 
       try {
         const updateData: UpdateAICandidateCommand = {

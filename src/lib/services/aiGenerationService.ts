@@ -77,9 +77,9 @@ async function callOpenRouterAPI(sourceText: string): Promise<OpenRouterCandidat
   Do not include any additional text or explanations.
   Do not add any markdown or code blocks.
 
-  <USER INPUT>
+  Text:
   ${sourceText}
-  <END OF USER INPUT>`;
+  `;
 
   try {
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {

@@ -46,7 +46,7 @@ export async function POST({ params, locals }: APIContext): Promise<Response> {
         user_id: DEFAULT_USER_ID,
         front_text: candidate.front_text,
         back_text: candidate.back_text,
-        source: "ai",
+        source: candidate.created_at !== candidate.updated_at ? "ai-edited" : "ai",
         source_text_hash: candidate.source_text_hash,
       })
       .select()
