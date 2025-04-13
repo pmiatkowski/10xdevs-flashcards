@@ -57,6 +57,7 @@ export interface Database {
           front_text: string;
           id: string;
           source: string;
+          source_text_hash: string | null;
           updated_at: string | null;
           user_id: string;
         };
@@ -66,6 +67,7 @@ export interface Database {
           front_text: string;
           id?: string;
           source: string;
+          source_text_hash?: string | null;
           updated_at?: string | null;
           user_id: string;
         };
@@ -75,6 +77,7 @@ export interface Database {
           front_text?: string;
           id?: string;
           source?: string;
+          source_text_hash?: string | null;
           updated_at?: string | null;
           user_id?: string;
         };

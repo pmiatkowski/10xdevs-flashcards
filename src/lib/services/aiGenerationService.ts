@@ -50,24 +50,36 @@ async function callOpenRouterAPI(sourceText: string): Promise<OpenRouterCandidat
   if (!apiKey) {
     throw new Error("OpenRouter API key is not configured.");
   }
+  const model = import.meta.env.OPENROUTER_MODEL;
+  if (!model) {
+    throw new Error("OpenRouter model is not configured.");
+  }
 
   // Prosty prompt - do dopracowania
   const prompt = `Based on a given text, generate list of 5 flashcards (front and back).
-  Respond with a given JSON format [{ "front": "...", "back": "..." }].
+  Respond nothing else but JSON formatted array of objects with front and back text.
+  Each object should have the following structure:
+  [
+    {
+      "front": "Front text of the flashcard, maximum 200 characters",
+      "back": "Back text of the flashcard, maximum 500 characters"
+    },
+    ...
+  ]
+  The front text should be a question or prompt, and the back text should be the answer or explanation.
+  The front text should be less than 200 characters and the back text should be less than 500 characters.
+  The front text should be unique and not contain any HTML tags or special characters.
+  The back text should be unique and not contain any HTML tags or special characters.
+  The front text should not contain any special characters.
+  The back text should not contain any special characters.
+  The response should be a JSON array of objects with the keys "front" and "back".
 
-  ABSOLUTE CONTRAINTS:
-  - The front text must be less than 200 characters.
-  - The back text must be less than 500 characters.
-  - The front text must be unique.
-  - The back text must be unique.
-  - The front text must not contain any HTML tags.
-  - The back text must not contain any HTML tags.
-  - The front text must not contain any special characters.
-  - The back text must not contain any special characters.
+  Do not include any additional text or explanations.
+  Do not add any markdown or code blocks.
 
-  Text:
-
-${sourceText}`;
+  <USER INPUT>
+  ${sourceText}
+  <END OF USER INPUT>`;
 
   try {
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -79,7 +91,7 @@ ${sourceText}`;
         "X-Title": "Fiszki", // Wymagane przez OpenRouter
       },
       body: JSON.stringify({
-        model: "mistralai/mistral-tiny", // Zmieniono na model z darmową warstwą
+        model, // Zmieniono na model z darmową warstwą
         messages: [{ role: "user", content: prompt }],
         response_format: { type: "json_object" }, // Prośba o odpowiedź JSON
       }),
@@ -117,6 +129,7 @@ ${sourceText}`;
 
     const data: OpenRouterResponse = await response.json();
 
+    logger.debug("OpenRouter API response:", data.choices[0].message.content);
     // Sprawdzenie, czy odpowiedź zawiera oczekiwane dane
     if (!data.choices || data.choices.length === 0 || !data.choices[0].message || !data.choices[0].message.content) {
       logger.error("Invalid OpenRouter response structure:", data);
@@ -166,6 +179,8 @@ function validateAndPrepareCandidates(
   const preparedCandidates: AiCandidateInsert[] = [];
   const validationErrors: string[] = [];
 
+  console.warn("RAW CANDIDATES:", rawCandidates);
+
   rawCandidates.forEach((candidate, index) => {
     const front_text = candidate.front?.trim();
     const back_text = candidate.back?.trim();
@@ -202,7 +217,7 @@ function validateAndPrepareCandidates(
   if (preparedCandidates.length === 0 && rawCandidates.length > 0) {
     throw new Error("AI generated candidates but all were empty or invalid after trimming.");
   }
-
+  logger.debug(`Prepared ${preparedCandidates.length} candidates for insertion after validation.`);
   return preparedCandidates;
 }
 

@@ -1,8 +1,8 @@
 ---
-import Welcome from "../components/Welcome.astro";
 import Layout from "../layouts/Layout.astro";
+import { DashboardView } from "../components/DashboardView";
 ---
 
-<Layout>
-  <Welcome />
+<Layout title="AI Flashcards - Dashboard">
+  <DashboardView client:load />
 </Layout>

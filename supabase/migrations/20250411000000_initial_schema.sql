@@ -23,6 +23,7 @@ create table "flashcards" (
     "front_text" varchar(200) not null check (length(front_text) <= 200),
     "back_text" varchar(500) not null check (length(back_text) <= 500),
     "source" text not null,
+    "source_text_hash" text,
     "created_at" timestamptz default now(),
     "updated_at" timestamptz default now()
 );
