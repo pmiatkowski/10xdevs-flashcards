@@ -5,8 +5,20 @@ import type {
   GenerateAiCandidatesResponseDto, // Import DTO odpowiedzi
   ApiErrorResponseDto, // Import DTO błędu
 } from "../../../types";
-import { generateCandidates } from "../../../lib/services/aiGenerationService"; // Import serwisu
-import { DEFAULT_USER_ID } from "../../../db/supabase.client"; // Import domyślnego ID użytkownika
+import { OpenRouterService } from "../../../lib/services/openRouterService";
+import {
+  ConfigurationError,
+  NetworkError,
+  AuthenticationError,
+  PaymentRequiredError,
+  RateLimitError,
+  ApiServiceError,
+  InvalidResponseFormatError,
+  ResponseValidationError,
+  DatabaseError,
+  EmptyValidResponseError,
+} from "../../../lib/errors/openRouterErrors";
+import { DEFAULT_USER_ID } from "../../../db/supabase.client";
 
 export const prerender = false;
 
@@ -46,15 +58,15 @@ export async function POST({ request, locals }: APIContext): Promise<Response> {
 
   // Krok 8 i 9: Wywołanie serwisu i obsługa odpowiedzi
   try {
-    // Użycie DEFAULT_USER_ID zamiast user.id
-    const candidates = await generateCandidates(command.sourceText, DEFAULT_USER_ID, supabase);
+    const openRouterService = new OpenRouterService();
+    const candidates = await openRouterService.generateCandidates(command.sourceText, DEFAULT_USER_ID, supabase);
 
     const responseDto: GenerateAiCandidatesResponseDto = {
       data: candidates,
     };
 
     return new Response(JSON.stringify(responseDto), {
-      status: 201, // Created
+      status: 201,
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
@@ -63,35 +75,34 @@ export async function POST({ request, locals }: APIContext): Promise<Response> {
     let statusCode = 500;
     let errorMessage = "Internal Server Error";
 
-    if (error instanceof Error) {
-      const errorMsg = error.message;
-
-      // Błędy związane z OpenRouter API
-      if (errorMsg.includes("payment required")) {
-        statusCode = 402; // Payment Required
-        errorMessage = "AI service requires payment. Please check your OpenRouter credits.";
-      } else if (errorMsg.includes("rate limit exceeded")) {
-        statusCode = 429; // Too Many Requests
-        errorMessage = "AI service rate limit exceeded. Please try again later.";
-      } else if (errorMsg.includes("service error")) {
-        statusCode = 502; // Bad Gateway
-        errorMessage = "AI service is temporarily unavailable. Please try again later.";
-      }
-      // Błędy walidacji i parsowania
-      else if (
-        errorMsg.includes("AI response validation failed:") ||
-        errorMsg.includes("Parsed content is not an array") ||
-        errorMsg.includes("Failed to parse JSON response") ||
-        errorMsg.includes("AI generated candidates but all were empty")
-      ) {
-        statusCode = 400; // Bad Request
-        errorMessage = errorMsg; // Używamy oryginalnej wiadomości dla błędów walidacji
-      }
-      // Błędy bazy danych
-      else if (errorMsg.includes("Failed to save AI candidates")) {
-        statusCode = 500; // Internal Server Error
-        errorMessage = "Database error while saving candidates.";
-      }
+    if (error instanceof ConfigurationError) {
+      statusCode = 500;
+      errorMessage = "AI service configuration error. Please check environment variables.";
+    } else if (error instanceof NetworkError) {
+      statusCode = 502;
+      errorMessage = "Failed to connect to AI service. Please try again later.";
+    } else if (error instanceof AuthenticationError) {
+      statusCode = 401;
+      errorMessage = "Authentication failed with AI service.";
+    } else if (error instanceof PaymentRequiredError) {
+      statusCode = 402;
+      errorMessage = "AI service requires payment. Please check your OpenRouter credits.";
+    } else if (error instanceof RateLimitError) {
+      statusCode = 429;
+      errorMessage = "AI service rate limit exceeded. Please try again later.";
+    } else if (error instanceof ApiServiceError) {
+      statusCode = 502;
+      errorMessage = "AI service is temporarily unavailable. Please try again later.";
+    } else if (
+      error instanceof InvalidResponseFormatError ||
+      error instanceof ResponseValidationError ||
+      error instanceof EmptyValidResponseError
+    ) {
+      statusCode = 400;
+      errorMessage = error.message;
+    } else if (error instanceof DatabaseError) {
+      statusCode = 500;
+      errorMessage = "Database error while saving candidates.";
     }
 
     const errorResponse: ApiErrorResponseDto = {
