@@ -177,6 +177,29 @@ Następujące funkcjonalności celowo NIE wchodzą w zakres wersji MVP (Minimum 
   - Użytkownik ma możliwość oceny swojej odpowiedzi (np. "łatwe", "trudne", "powtórz"), co wpływa na harmonogram kolejnych powtórek zgodnie z algorytmem.
   - Sesja trwa do momentu przetworzenia wszystkich zaplanowanych na dany moment fiszek lub do przerwania przez użytkownika.
 
+- ID: US-013
+- Tytuł: Odzyskiwanie hasła
+- Opis: Jako zarejestrowany użytkownik, który zapomniał hasła, chcę móc zainicjować proces odzyskiwania hasła, abym mógł odzyskać dostęp do mojego konta.
+- Kryteria akceptacji:
+  - Na stronie logowania dostępna jest opcja "Zapomniałem hasła".
+  - Po kliknięciu opcji i podaniu adresu e-mail powiązanego z kontem, system wysyła na ten adres e-mail link do resetowania hasła.
+  - Link do resetowania hasła jest unikalny i ma ograniczony czas ważności.
+  - Po kliknięciu w link, użytkownik jest przekierowywany na stronę, gdzie może ustawić nowe hasło.
+  - Nowe hasło musi spełniać te same wymagania co przy rejestracji (minimum 4 znaki).
+  - Po pomyślnym ustawieniu nowego hasła, użytkownik może zalogować się przy jego użyciu.
+  - W przypadku podania adresu e-mail, który nie istnieje w systemie, wyświetlany jest ogólny komunikat (ze względów bezpieczeństwa, nie informujący wprost o braku konta).
+
+- ID: US-014
+- Tytuł: Generowanie kandydatów na fiszki przez AI dla niezalogowanego użytkownika
+- Opis: Jako niezalogowany użytkownik, chcę móc wkleić tekst źródłowy i zlecić AI wygenerowanie propozycji fiszek, abym mógł wypróbować funkcjonalność aplikacji przed rejestracją.
+- Kryteria akceptacji:
+  - Na stronie głównej dostępna jest funkcjonalność generowania fiszek przez AI (pole tekstowe, przycisk "Generuj fiszki") dla niezalogowanych użytkowników.
+  - Po kliknięciu przycisku i przetworzeniu tekstu przez AI, wyświetlana jest lista kandydatów na fiszki (propozycji), oznaczonych ikoną "@".
+  - Przy liście kandydatów widoczne są przyciski/linki zachęcające do rejestracji lub logowania w celu zapisania, edycji lub akceptacji fiszek.
+  - Funkcje edycji, akceptacji i odrzucania kandydatów są niedostępne (wyszarzone lub ukryte) dla niezalogowanego użytkownika.
+  - Jeśli użytkownik zdecyduje się zalogować lub zarejestrować po wygenerowaniu kandydatów, wprowadzony tekst źródłowy oraz wygenerowani kandydaci zostają zachowani i są dostępni dla użytkownika po zalogowaniu.
+  - Po zalogowaniu, użytkownik może normalnie zarządzać zachowanymi kandydatami (edytować, akceptować, odrzucać) zgodnie z US-006, US-007, US-008.
+
 ## 6. Metryki sukcesu
 
 - MS-001: Wskaźnik akceptacji fiszek AI: Co najmniej 75% fiszek wygenerowanych przez AI i przedstawionych użytkownikowi do recenzji jest przez niego akceptowanych (ewentualnie po edycji).
