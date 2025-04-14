@@ -1,12 +1,16 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import { AIGenerationForm } from "./AIGenerationForm";
 import { AICandidateList } from "./AICandidateList";
+import { CallToActionLogin } from "./CallToActionLogin";
+import { apiRequest, formatApiError } from "../lib/utils/apiUtils";
+import { loadGuestState, saveGuestState, clearGuestState } from "../lib/utils/sessionStorage";
 import type {
   AICandidateDTO,
   GenerateFlashcardCandidatesCommand,
-  ApiErrorResponseDto,
   UpdateAICandidateCommand,
+  GenerateAiCandidatesResponseDto,
+  FlashcardDTO,
 } from "../types";
 
 /**
@@ -20,69 +24,89 @@ interface AICandidateViewModel extends AICandidateDTO {
   isSaving?: boolean;
 }
 
-export const DashboardView: React.FC = () => {
+interface DashboardViewProps {
+  isAuthenticated: boolean;
+}
+
+export const DashboardView: React.FC<DashboardViewProps> = ({ isAuthenticated }) => {
   // State for AI candidates
   const [candidates, setCandidates] = useState<AICandidateViewModel[]>([]);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   // Generation state
   const [isLoadingGeneration, setIsLoadingGeneration] = useState<boolean>(false);
-  const [generationError, setGenerationError] = useState<ApiErrorResponseDto | string | null>(null);
+  const [generationError, setGenerationError] = useState<string | null>(null);
 
   // Bulk action state
   const [isBulkLoading, setIsBulkLoading] = useState<boolean>(false);
 
-  // Handler for generating flashcards
-  const handleGenerate = useCallback(async (sourceText: string) => {
-    setIsLoadingGeneration(true);
-    setGenerationError(null);
-
-    try {
-      const response = await fetch("/api/ai/generate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ sourceText } as GenerateFlashcardCandidatesCommand),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw errorData;
+  // Load guest state on mount
+  useEffect(() => {
+    if (!isAuthenticated) {
+      const guestState = loadGuestState();
+      if (guestState.candidates && guestState.candidates.length > 0) {
+        const viewModels = guestState.candidates.map((candidate) => ({
+          ...candidate,
+          isEditing: false,
+          editedFront: candidate.front_text,
+          editedBack: candidate.back_text,
+        }));
+        setCandidates(viewModels);
+        setShowLoginPrompt(true);
       }
-
-      const { data } = await response.json();
-
-      // Transform AICandidateDTO[] to AICandidateViewModel[]
-      const viewModels = data.map((candidate: AICandidateDTO) => ({
-        ...candidate,
-        isEditing: false,
-        editedFront: candidate.front_text,
-        editedBack: candidate.back_text,
-      }));
-
-      setCandidates(viewModels);
-
-      // Show toast notification of success
-      toast.success(`Generated ${viewModels.length} flashcard candidates`);
-    } catch (error) {
-      console.error("Generation error:", error);
-      setGenerationError(
-        typeof error === "object" && error !== null ? (error as ApiErrorResponseDto) : "Failed to generate flashcards"
-      );
-      // Show toast notification of error
-      toast.error(
-        typeof error === "object" && error !== null && "message" in error
-          ? (error as ApiErrorResponseDto).message
-          : "Failed to generate flashcards"
-      );
-    } finally {
-      setIsLoadingGeneration(false);
+    } else {
+      // Clear guest state when user is authenticated
+      clearGuestState();
     }
-  }, []);
+  }, [isAuthenticated]);
+
+  // Handler for generating flashcards
+  const handleGenerate = useCallback(
+    async (sourceText: string) => {
+      setIsLoadingGeneration(true);
+      setGenerationError(null);
+
+      try {
+        const { data } = await apiRequest<GenerateAiCandidatesResponseDto>("/api/ai/generate", {
+          method: "POST",
+          body: { sourceText } as GenerateFlashcardCandidatesCommand,
+        });
+
+        // Transform AICandidateDTO[] to AICandidateViewModel[]
+        const viewModels = data.map((candidate: AICandidateDTO) => ({
+          ...candidate,
+          isEditing: false,
+          editedFront: candidate.front_text,
+          editedBack: candidate.back_text,
+        }));
+
+        setCandidates(viewModels);
+
+        // For guests: save state and show login prompt
+        if (!isAuthenticated) {
+          saveGuestState({ sourceText, candidates: data });
+          setShowLoginPrompt(true);
+        }
+
+        // Show toast notification of success
+        toast.success(`Generated ${viewModels.length} flashcard candidates`);
+      } catch (error) {
+        console.error("Generation error:", error);
+        const errorMessage = formatApiError(error);
+        setGenerationError(errorMessage);
+        // Show toast notification of error
+        toast.error(errorMessage);
+      } finally {
+        setIsLoadingGeneration(false);
+      }
+    },
+    [isAuthenticated]
+  );
 
   // Handler for accepting a candidate
   const handleAccept = useCallback(
     async (candidateId: string) => {
+      if (!isAuthenticated) return;
       // Find the candidate in state
       const candidate = candidates.find((c) => c.id === candidateId);
       if (!candidate) return;
@@ -91,18 +115,9 @@ export const DashboardView: React.FC = () => {
       setCandidates((prev) => prev.map((c) => (c.id === candidateId ? { ...c, isSaving: true } : c)));
 
       try {
-        const response = await fetch(`/api/ai-candidates/${candidateId}/accept`, {
+        await apiRequest<FlashcardDTO>(`/api/ai-candidates/${candidateId}/accept`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(candidate),
         });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw errorData;
-        }
 
         // On success, remove the candidate from the list
         setCandidates((prev) => prev.filter((c) => c.id !== candidateId));
@@ -116,19 +131,16 @@ export const DashboardView: React.FC = () => {
         setCandidates((prev) => prev.map((c) => (c.id === candidateId ? { ...c, isSaving: false } : c)));
 
         // Show error toast
-        toast.error(
-          typeof error === "object" && error !== null && "message" in error
-            ? (error as ApiErrorResponseDto).message
-            : "Failed to accept flashcard"
-        );
+        toast.error(formatApiError(error));
       }
     },
-    [candidates]
+    [candidates, isAuthenticated]
   );
 
   // Handler for rejecting a candidate
   const handleReject = useCallback(
     async (candidateId: string) => {
+      if (!isAuthenticated) return;
       // Find the candidate in state
       const candidate = candidates.find((c) => c.id === candidateId);
       if (!candidate) return;
@@ -137,14 +149,9 @@ export const DashboardView: React.FC = () => {
       setCandidates((prev) => prev.map((c) => (c.id === candidateId ? { ...c, isSaving: true } : c)));
 
       try {
-        const response = await fetch(`/api/ai-candidates/${candidateId}`, {
+        await apiRequest(`/api/ai-candidates/${candidateId}`, {
           method: "DELETE",
         });
-
-        if (!response.ok && response.status !== 204) {
-          const errorData = await response.json();
-          throw errorData;
-        }
 
         // On success, remove the candidate from the list
         setCandidates((prev) => prev.filter((c) => c.id !== candidateId));
@@ -158,79 +165,84 @@ export const DashboardView: React.FC = () => {
         setCandidates((prev) => prev.map((c) => (c.id === candidateId ? { ...c, isSaving: false } : c)));
 
         // Show error toast
-        toast.error(
-          typeof error === "object" && error !== null && "message" in error
-            ? (error as ApiErrorResponseDto).message
-            : "Failed to reject flashcard"
-        );
+        toast.error(formatApiError(error));
       }
     },
-    [candidates]
+    [candidates, isAuthenticated]
   );
 
   // Handler for toggling edit mode
-  const handleEditToggle = useCallback((candidateId: string, isEditing: boolean) => {
-    setCandidates((prev) =>
-      prev.map((c) => {
-        if (c.id === candidateId) {
-          // If entering edit mode, copy the current values to edited values
-          if (isEditing) {
-            return {
-              ...c,
-              isEditing,
-              editedFront: c.front_text,
-              editedBack: c.back_text,
-              validationErrors: undefined,
-            };
+  const handleEditToggle = useCallback(
+    (candidateId: string, isEditing: boolean) => {
+      if (!isAuthenticated) return;
+      setCandidates((prev) =>
+        prev.map((c) => {
+          if (c.id === candidateId) {
+            // If entering edit mode, copy the current values to edited values
+            if (isEditing) {
+              return {
+                ...c,
+                isEditing,
+                editedFront: c.front_text,
+                editedBack: c.back_text,
+                validationErrors: undefined,
+              };
+            }
+            // If exiting edit mode, just toggle the flag (discard changes)
+            return { ...c, isEditing };
           }
-          // If exiting edit mode, just toggle the flag (discard changes)
-          return { ...c, isEditing };
-        }
-        return c;
-      })
-    );
-  }, []);
+          return c;
+        })
+      );
+    },
+    [isAuthenticated]
+  );
 
   // Handler for handling edit changes
-  const handleEditChange = useCallback((candidateId: string, field: "front" | "back", value: string) => {
-    setCandidates((prev) =>
-      prev.map((c) => {
-        if (c.id === candidateId) {
-          const updatedCandidate = {
-            ...c,
-            [field === "front" ? "editedFront" : "editedBack"]: value,
-          };
+  const handleEditChange = useCallback(
+    (candidateId: string, field: "front" | "back", value: string) => {
+      if (!isAuthenticated) return;
+      setCandidates((prev) =>
+        prev.map((c) => {
+          if (c.id === candidateId) {
+            const updatedCandidate = {
+              ...c,
+              [field === "front" ? "editedFront" : "editedBack"]: value,
+            };
 
-          // Validate on change
-          const validationErrors = {
-            ...c.validationErrors,
-          };
+            // Validate on change
+            const validationErrors = {
+              ...c.validationErrors,
+            };
 
-          if (field === "front" && value.length > 200) {
-            validationErrors.front = "Front text must be 200 characters or less";
-          } else if (field === "front") {
-            delete validationErrors.front;
+            if (field === "front" && value.length > 200) {
+              validationErrors.front = "Front text must be 200 characters or less";
+            } else if (field === "front") {
+              delete validationErrors.front;
+            }
+
+            if (field === "back" && value.length > 500) {
+              validationErrors.back = "Back text must be 500 characters or less";
+            } else if (field === "back") {
+              delete validationErrors.back;
+            }
+
+            return {
+              ...updatedCandidate,
+              validationErrors: Object.keys(validationErrors).length > 0 ? validationErrors : undefined,
+            };
           }
-
-          if (field === "back" && value.length > 500) {
-            validationErrors.back = "Back text must be 500 characters or less";
-          } else if (field === "back") {
-            delete validationErrors.back;
-          }
-
-          return {
-            ...updatedCandidate,
-            validationErrors: Object.keys(validationErrors).length > 0 ? validationErrors : undefined,
-          };
-        }
-        return c;
-      })
-    );
-  }, []);
+          return c;
+        })
+      );
+    },
+    [isAuthenticated]
+  );
 
   // Handler for saving edits
   const handleSaveEdit = useCallback(
     async (candidateId: string) => {
+      if (!isAuthenticated) return;
       // Find the candidate
       const candidate = candidates.find((c) => c.id === candidateId);
       if (!candidate) return;
@@ -263,21 +275,10 @@ export const DashboardView: React.FC = () => {
           back_text: candidate.editedBack,
         };
 
-        const response = await fetch(`/api/ai-candidates/${candidateId}`, {
+        const updatedCandidate = await apiRequest<AICandidateDTO>(`/api/ai-candidates/${candidateId}`, {
           method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(updateData),
+          body: updateData,
         });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw errorData;
-        }
-
-        // Get updated candidate from response
-        const updatedCandidate = await response.json();
 
         // Update candidate in state
         setCandidates((prev) =>
@@ -304,50 +305,33 @@ export const DashboardView: React.FC = () => {
         setCandidates((prev) => prev.map((c) => (c.id === candidateId ? { ...c, isSaving: false } : c)));
 
         // Show error toast
-        toast.error(
-          typeof error === "object" && error !== null && "message" in error
-            ? (error as ApiErrorResponseDto).message
-            : "Failed to update flashcard"
-        );
+        toast.error(formatApiError(error));
       }
     },
-    [candidates]
+    [candidates, isAuthenticated]
   );
 
   // Handler for accepting all candidates
   const handleAcceptAll = useCallback(async () => {
-    if (candidates.length === 0 || candidates.some((c) => c.isEditing)) return;
+    if (!isAuthenticated || candidates.length === 0 || candidates.some((c) => c.isEditing)) return;
 
     setIsBulkLoading(true);
 
     const acceptPromises = candidates.map((candidate) =>
-      fetch(`/api/ai-candidates/${candidate.id}/accept`, {
+      apiRequest<FlashcardDTO>(`/api/ai-candidates/${candidate.id}/accept`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
       })
-        .then(async (response) => {
-          if (!response.ok) {
-            const errorData = await response.json();
-            return { success: false, id: candidate.id, error: errorData };
-          }
-          return { success: true, id: candidate.id };
-        })
+        .then(() => ({ success: true, id: candidate.id }))
         .catch((error) => ({ success: false, id: candidate.id, error }))
     );
 
     try {
-      const results = await Promise.allSettled(acceptPromises);
+      const results = await Promise.all(acceptPromises);
 
       // Count successful and failed operations
-      const successful = results
-        .filter((r) => r.status === "fulfilled" && "value" in r && r.value.success)
-        .map((r) => (r.status === "fulfilled" && "value" in r ? r.value.id : null));
+      const successful = results.filter((r) => r.success).map((r) => r.id);
 
-      const failed = results.filter(
-        (r) => r.status === "rejected" || (r.status === "fulfilled" && "value" in r && !r.value.success)
-      ).length;
+      const failed = results.filter((r) => !r.success).length;
 
       // Remove successful candidates from state
       if (successful.length > 0) {
@@ -364,11 +348,11 @@ export const DashboardView: React.FC = () => {
       }
     } catch (error) {
       console.error("Accept all error:", error);
-      toast.error("Failed to process bulk accept operation");
+      toast.error(formatApiError(error));
     } finally {
       setIsBulkLoading(false);
     }
-  }, [candidates]);
+  }, [candidates, isAuthenticated]);
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
@@ -379,13 +363,11 @@ export const DashboardView: React.FC = () => {
       {generationError && (
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 text-red-700 dark:text-red-200">
           <p className="font-medium">Generation Error</p>
-          <p className="text-sm">
-            {typeof generationError === "string"
-              ? generationError
-              : generationError.message || "An unknown error occurred"}
-          </p>
+          <p className="text-sm">{generationError}</p>
         </div>
       )}
+
+      {!isAuthenticated && showLoginPrompt && candidates.length > 0 && <CallToActionLogin />}
 
       {candidates.length > 0 && (
         <AICandidateList
@@ -397,6 +379,7 @@ export const DashboardView: React.FC = () => {
           onSaveEdit={handleSaveEdit}
           onAcceptAll={handleAcceptAll}
           isBulkLoading={isBulkLoading}
+          isAuthenticated={isAuthenticated}
         />
       )}
 

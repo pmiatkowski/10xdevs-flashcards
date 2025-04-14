@@ -15,6 +15,7 @@ interface AICandidateViewModel {
 
 interface AICandidateListItemProps {
   candidate: AICandidateViewModel;
+  isAuthenticated: boolean;
   onAccept: (candidateId: string) => void;
   onReject: (candidateId: string) => void;
   onEditToggle: (candidateId: string, isEditing: boolean) => void;
@@ -24,6 +25,7 @@ interface AICandidateListItemProps {
 
 export const AICandidateListItem: React.FC<AICandidateListItemProps> = ({
   candidate,
+  isAuthenticated,
   onAccept,
   onReject,
   onEditToggle,
@@ -63,82 +65,98 @@ export const AICandidateListItem: React.FC<AICandidateListItemProps> = ({
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onEditToggle(candidate.id, true)}
-            disabled={candidate.isSaving}
-            aria-label="Edit flashcard"
-          >
-            Edit
-          </Button>
+        {isAuthenticated && (
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onEditToggle(candidate.id, true)}
+              disabled={candidate.isSaving}
+              aria-label="Edit flashcard"
+            >
+              Edit
+            </Button>
 
-          <Button
-            variant="default"
-            size="sm"
-            onClick={() => onAccept(candidate.id)}
-            disabled={candidate.isSaving}
-            aria-label="Accept flashcard"
-          >
-            {candidate.isSaving ? (
-              <>
-                <svg
-                  className="animate-spin -ml-1 mr-2 h-4 w-4"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                Accepting...
-              </>
-            ) : (
-              "Accept"
-            )}
-          </Button>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => onAccept(candidate.id)}
+              disabled={candidate.isSaving}
+              aria-label="Accept flashcard"
+            >
+              {candidate.isSaving ? (
+                <>
+                  <svg
+                    className="animate-spin -ml-1 mr-2 h-4 w-4"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Accepting...
+                </>
+              ) : (
+                "Accept"
+              )}
+            </Button>
 
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => onReject(candidate.id)}
-            disabled={candidate.isSaving}
-            aria-label="Reject flashcard"
-          >
-            {candidate.isSaving ? (
-              <>
-                <svg
-                  className="animate-spin -ml-1 mr-2 h-4 w-4"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                Rejecting...
-              </>
-            ) : (
-              "Reject"
-            )}
-          </Button>
-        </div>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => onReject(candidate.id)}
+              disabled={candidate.isSaving}
+              aria-label="Reject flashcard"
+            >
+              {candidate.isSaving ? (
+                <>
+                  <svg
+                    className="animate-spin -ml-1 mr-2 h-4 w-4"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Rejecting...
+                </>
+              ) : (
+                "Reject"
+              )}
+            </Button>
+          </div>
+        )}
       </div>
     );
   }
 
-  // Edit mode
+  // Edit mode (only shown for authenticated users)
   return (
     <div
       className="bg-white dark:bg-gray-800 rounded-lg p-5 shadow-md border border-blue-300 dark:border-blue-700"

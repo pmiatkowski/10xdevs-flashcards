@@ -5,10 +5,11 @@ import { Textarea } from "./ui/textarea";
 interface AIGenerationFormProps {
   onSubmit: (sourceText: string) => void;
   isLoading: boolean;
+  initialSourceText?: string;
 }
 
-export const AIGenerationForm: React.FC<AIGenerationFormProps> = ({ onSubmit, isLoading }) => {
-  const [sourceText, setSourceText] = useState<string>("");
+export const AIGenerationForm: React.FC<AIGenerationFormProps> = ({ onSubmit, isLoading, initialSourceText = "" }) => {
+  const [sourceText, setSourceText] = useState<string>(initialSourceText);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {

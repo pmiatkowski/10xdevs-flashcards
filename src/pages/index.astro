@@ -1,8 +1,11 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import { DashboardView } from "../components/DashboardView";
+
+// Get authentication state from middleware
+const isAuthenticated = !!Astro.locals.session?.user;
 ---
 
 <Layout title="AI Flashcards - Dashboard">
-  <DashboardView client:load />
+  <DashboardView client:load isAuthenticated={isAuthenticated} />
 </Layout>
