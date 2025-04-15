@@ -1,0 +1,16 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { FlashcardList } from '../components/FlashcardList';
+export const prerender = false;
+
+// Redirect to login if user is not authenticated
+if (!Astro.locals.session) {
+  return Astro.redirect('/login', 307);
+}
+---
+
+<Layout title="My Flashcards - AI Flashcards">
+  <div class="container max-w-5xl mx-auto px-4 py-8">
+    <FlashcardList client:load />
+  </div>
+</Layout>

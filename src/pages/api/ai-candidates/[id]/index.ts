@@ -1,7 +1,6 @@
 import type { APIContext } from "astro";
 import { z } from "zod";
-import { DEFAULT_USER_ID, supabaseClient } from "../../../../db/supabase.client";
-import type { AICandidateDTO, ApiErrorResponseDto, UpdateAICandidateCommand } from "../../../../types";
+import type { AICandidateDTO, ApiErrorResponseDto } from "../../../../types";
 
 export const prerender = false;
 
@@ -18,6 +17,14 @@ const UpdateAICandidateCommandSchema = z.object({
 });
 
 export async function PUT({ params, request, locals }: APIContext): Promise<Response> {
+  // 1. Check authentication
+  const session = locals.session;
+  if (!session?.user?.id) {
+    return new Response(JSON.stringify({ message: "Unauthorized" }), {
+      status: 401,
+    });
+  }
+
   // 2. Validate ID parameter
   const { id } = params;
   if (!id) {
@@ -31,14 +38,19 @@ export async function PUT({ params, request, locals }: APIContext): Promise<Resp
   }
 
   try {
-    // 3. Parse and validate request body
-    const body = await request.json();
-    const result = UpdateAICandidateCommandSchema.safeParse(body);
+    // 3. Get Supabase client from context
+    const supabase = locals.supabase;
 
-    if (!result.success) {
+    // 4. Validate request body
+    const body = await request.json();
+    const validationResult = UpdateAICandidateCommandSchema.safeParse(body);
+    if (!validationResult.success) {
       const errorResponse: ApiErrorResponseDto = {
-        message: "Invalid request data",
-        errors: result.error.flatten().fieldErrors,
+        message: "Invalid input",
+        // errors: Object.entries(validationResult.error.flatten().fieldErrors).map(([key, value]) => ({
+        //   field: key,
+        //   messages: value,
+        // })),
       };
       return new Response(JSON.stringify(errorResponse), {
         status: 400,
@@ -46,21 +58,15 @@ export async function PUT({ params, request, locals }: APIContext): Promise<Resp
       });
     }
 
-    // 4. Get validated data
-    const updateData: UpdateAICandidateCommand = result.data;
-
-    // 5. Get Supabase client from context
-    const supabase = locals.supabase || supabaseClient;
-
-    // 6. Check if the candidate exists and belongs to the current user
-    const { data: candidate, error: fetchError } = await supabase
+    // 5. Check if the candidate exists and belongs to the current user
+    const { data: existing, error: fetchError } = await supabase
       .from("ai_candidates")
-      .select("*")
+      .select()
       .eq("id", id)
-      .eq("user_id", DEFAULT_USER_ID)
+      .eq("user_id", session.user.id)
       .single();
 
-    if (fetchError || !candidate) {
+    if (fetchError || !existing) {
       const errorResponse: ApiErrorResponseDto = {
         message: "Candidate not found or you don't have permission to update it",
       };
@@ -70,32 +76,21 @@ export async function PUT({ params, request, locals }: APIContext): Promise<Resp
       });
     }
 
-    // 7. Update the candidate
-    const { data: updatedCandidate, error: updateError } = await supabase
+    // 6. Update the candidate
+    const { data: updated, error: updateError } = await supabase
       .from("ai_candidates")
-      .update({
-        front_text: updateData.front_text,
-        back_text: updateData.back_text,
-        updated_at: new Date().toISOString(),
-      })
+      .update({ ...validationResult.data, updated_at: new Date().toISOString() })
       .eq("id", id)
-      .eq("user_id", DEFAULT_USER_ID)
+      .eq("user_id", session.user.id)
       .select()
       .single();
 
     if (updateError) {
       console.error("Error updating candidate:", updateError);
-      const errorResponse: ApiErrorResponseDto = {
-        message: "Failed to update candidate",
-      };
-      return new Response(JSON.stringify(errorResponse), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
+      throw updateError;
     }
 
-    // 8. Return the updated candidate
-    return new Response(JSON.stringify(updatedCandidate as AICandidateDTO), {
+    return new Response(JSON.stringify(updated as AICandidateDTO), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
@@ -112,6 +107,14 @@ export async function PUT({ params, request, locals }: APIContext): Promise<Resp
 }
 
 export async function DELETE({ params, locals }: APIContext): Promise<Response> {
+  // 1. Check authentication
+  const session = locals.session;
+  if (!session?.user?.id) {
+    return new Response(JSON.stringify({ message: "Unauthorized" }), {
+      status: 401,
+    });
+  }
+
   // 2. Validate ID parameter
   const { id } = params;
   if (!id) {
@@ -126,17 +129,17 @@ export async function DELETE({ params, locals }: APIContext): Promise<Response> 
 
   try {
     // 3. Get Supabase client from context
-    const supabase = locals.supabase || supabaseClient;
+    const supabase = locals.supabase;
 
     // 4. Check if the candidate exists and belongs to the current user
-    const { data: candidate, error: fetchError } = await supabase
+    const { data: existing, error: fetchError } = await supabase
       .from("ai_candidates")
-      .select("id")
+      .select()
       .eq("id", id)
-      .eq("user_id", DEFAULT_USER_ID)
+      .eq("user_id", session.user.id)
       .single();
 
-    if (fetchError || !candidate) {
+    if (fetchError || !existing) {
       const errorResponse: ApiErrorResponseDto = {
         message: "Candidate not found or you don't have permission to reject it",
       };
@@ -151,17 +154,11 @@ export async function DELETE({ params, locals }: APIContext): Promise<Response> 
       .from("ai_candidates")
       .delete()
       .eq("id", id)
-      .eq("user_id", DEFAULT_USER_ID);
+      .eq("user_id", session.user.id);
 
     if (deleteError) {
       console.error("Error deleting candidate:", deleteError);
-      const errorResponse: ApiErrorResponseDto = {
-        message: "Failed to reject candidate",
-      };
-      return new Response(JSON.stringify(errorResponse), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
+      throw deleteError;
     }
 
     // 6. Return 204 No Content for successful deletion

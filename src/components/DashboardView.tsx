@@ -9,7 +9,6 @@ import type {
   AICandidateDTO,
   GenerateFlashcardCandidatesCommand,
   UpdateAICandidateCommand,
-  GenerateAiCandidatesResponseDto,
   FlashcardDTO,
 } from "../types";
 
@@ -79,7 +78,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ isAuthenticated })
       setGenerationError(null);
 
       try {
-        const { data } = await apiRequest<GenerateAiCandidatesResponseDto>("/api/ai/generate", {
+        const data = await apiRequest<AICandidateDTO[]>("/api/ai/generate", {
           method: "POST",
           body: { sourceText } as GenerateFlashcardCandidatesCommand,
         });

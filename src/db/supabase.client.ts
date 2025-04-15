@@ -5,8 +5,6 @@ import type { Database } from "./database.types";
 
 export type { SupabaseClient };
 
-export const DEFAULT_USER_ID = "95934c23-5db1-42cd-b435-e8f3311cfad6";
-
 export const cookieOptions: CookieOptions = {
   path: "/",
   secure: true,

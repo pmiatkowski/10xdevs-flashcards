@@ -1,10 +1,17 @@
 import type { APIContext } from "astro";
-import { DEFAULT_USER_ID, supabaseClient } from "../../../../../db/supabase.client";
 import type { ApiErrorResponseDto, FlashcardDTO } from "../../../../../types";
 
 export const prerender = false;
 
 export async function POST({ params, locals }: APIContext): Promise<Response> {
+  // 1. Check authentication
+  const session = locals.session;
+  if (!session?.user?.id) {
+    return new Response(JSON.stringify({ message: "Unauthorized" }), {
+      status: 401,
+    });
+  }
+
   // 2. Validate ID parameter
   const { id } = params;
   if (!id) {
@@ -19,14 +26,14 @@ export async function POST({ params, locals }: APIContext): Promise<Response> {
 
   try {
     // 3. Get Supabase client from context
-    const supabase = locals.supabase || supabaseClient;
+    const supabase = locals.supabase;
 
     // 4. Check if the candidate exists and belongs to the current user
     const { data: candidate, error: fetchError } = await supabase
       .from("ai_candidates")
       .select("*")
       .eq("id", id)
-      .eq("user_id", DEFAULT_USER_ID)
+      .eq("user_id", session.user.id)
       .single();
 
     if (fetchError || !candidate) {
@@ -43,7 +50,7 @@ export async function POST({ params, locals }: APIContext): Promise<Response> {
     const { data: flashcard, error: insertError } = await supabase
       .from("flashcards")
       .insert({
-        user_id: DEFAULT_USER_ID,
+        user_id: session.user.id,
         front_text: candidate.front_text,
         back_text: candidate.back_text,
         source: candidate.created_at !== candidate.updated_at ? "ai-edited" : "ai",
@@ -65,7 +72,7 @@ export async function POST({ params, locals }: APIContext): Promise<Response> {
 
     // 6. Update generation stats with 'accepted' event
     const { error: statsError } = await supabase.from("generation_stats").insert({
-      user_id: DEFAULT_USER_ID,
+      user_id: session.user.id,
       event_type: "accepted",
       candidate_count: 1,
       source_text_hash: candidate.source_text_hash,
@@ -81,7 +88,7 @@ export async function POST({ params, locals }: APIContext): Promise<Response> {
       .from("ai_candidates")
       .delete()
       .eq("id", id)
-      .eq("user_id", DEFAULT_USER_ID);
+      .eq("user_id", session.user.id);
 
     if (deleteError) {
       console.error("Error deleting accepted candidate:", deleteError);
