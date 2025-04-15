@@ -3,24 +3,15 @@
 import type { SupabaseClient, User, Session } from "@supabase/supabase-js";
 import type { Database } from "./db/database.types";
 
-interface LocalsWithAuth {
-  supabase: SupabaseClient<Database>;
-  session: Session | null;
-  user: User | null;
-}
-
 declare global {
   namespace App {
-    type Locals = LocalsWithAuth;
+    interface Locals {
+      supabase: SupabaseClient<Database>;
+      session: Session | null;
+      user: User | null;
+    }
   }
 }
-
-// declare module "astro" {
-//   interface Astro {
-//     // Add any additional properties or methods you want to expose
-//     locals: LocalsWithAuth;
-//   }
-// }
 
 interface ImportMetaEnv {
   readonly SUPABASE_URL: string;
@@ -34,5 +25,3 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
-
-export {};

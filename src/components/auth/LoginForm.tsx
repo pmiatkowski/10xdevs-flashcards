@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { z } from "zod";
+import type { ApiErrorResponseDto } from "@/types";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -23,11 +24,9 @@ export const LoginForm = () => {
     setErrors({});
 
     try {
-      // Validate the form data
       const validData = loginSchema.parse(data);
       setIsLoading(true);
 
-      // Send login request
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
@@ -36,12 +35,14 @@ export const LoginForm = () => {
         body: JSON.stringify(validData),
       });
 
+      const responseData = await response.json();
+
       if (!response.ok) {
-        const error = await response.json();
         if (response.status === 401) {
           toast.error("Invalid email or password");
         } else {
-          toast.error(error.message || "An error occurred during sign in");
+          const errorData = responseData as ApiErrorResponseDto;
+          toast.error(errorData.message || "An error occurred during sign in");
         }
         return;
       }
@@ -73,11 +74,7 @@ export const LoginForm = () => {
     }));
     // Clear error when user starts typing
     if (errors[name]) {
-      setErrors((prev) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { [name]: omitted, ...rest } = prev;
-        return rest;
-      });
+      setErrors((prev) => Object.fromEntries(Object.entries(prev).filter(([key]) => key !== name)));
     }
   };
 

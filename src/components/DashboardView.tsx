@@ -42,8 +42,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ isAuthenticated })
 
   // Load guest state on mount
   useEffect(() => {
+    const guestState = loadGuestState();
     if (!isAuthenticated) {
-      const guestState = loadGuestState();
       if (guestState.candidates && guestState.candidates.length > 0) {
         const viewModels = guestState.candidates.map((candidate) => ({
           ...candidate,
@@ -54,8 +54,20 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ isAuthenticated })
         setCandidates(viewModels);
         setShowLoginPrompt(true);
       }
+    } else if (guestState.candidates && guestState.candidates.length > 0) {
+      // If user just authenticated and has guest candidates, load them
+      const viewModels = guestState.candidates.map((candidate) => ({
+        ...candidate,
+        isEditing: false,
+        editedFront: candidate.front_text,
+        editedBack: candidate.back_text,
+      }));
+      setCandidates(viewModels);
+      // Clear guest state after importing
+      clearGuestState();
+      toast.success("Your flashcard candidates have been imported!");
     } else {
-      // Clear guest state when user is authenticated
+      // Clear guest state when user is authenticated and has no candidates
       clearGuestState();
     }
   }, [isAuthenticated]);
