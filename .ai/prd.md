@@ -199,6 +199,21 @@ Następujące funkcjonalności celowo NIE wchodzą w zakres wersji MVP (Minimum 
   - Funkcje edycji, akceptacji i odrzucania kandydatów są niedostępne (wyszarzone lub ukryte) dla niezalogowanego użytkownika.
   - Jeśli użytkownik zdecyduje się zalogować lub zarejestrować po wygenerowaniu kandydatów, wprowadzony tekst źródłowy oraz wygenerowani kandydaci zostają zachowani i są dostępni dla użytkownika po zalogowaniu.
   - Po zalogowaniu, użytkownik może normalnie zarządzać zachowanymi kandydatami (edytować, akceptować, odrzucać) zgodnie z US-006, US-007, US-008.
+  
+- ID: US-015
+- Tytuł: Bezpieczny dostęp i uwierzytelnianie
+- Opis: Jako użytkownik chcę mieć możliwość rejestracji i logowania się do systemu w sposób zapewniający bezpieczeństwo moich danych.
+- Kryteria akceptacji:
+  - Logowanie i rejestracja odbywają się na dedykowanych stronach.
+  - Logowanie wymaga podania adresu email i hasła zgodnie z US-002.
+  - Rejestracja wymaga podania adresu email, hasła i potwierdzenia hasła zgodnie z US-001.
+  - Użytkownik MOŻE korzystać z generowania fiszek "ad-hoc" bez logowania się do systemu (US-014, US-005).
+  - Użytkownik NIE MOŻE korzystać z funkcji recenzowania, edycji i usuwania fiszek (US-006, US-007, US-008, US-009, US-010, US-011).
+  - Użytkownik NIE MOŻE korzystać z sesji powtórek (US-012).
+  - Użytkownik może logować się do systemu poprzez przycisk w prawym górnym rogu.
+  - Użytkownik może się wylogować z systemu poprzez przycisk w prawym górnym rogu w głównym @Layout.astro.
+  - Nie korzystamy z zewnętrznych serwisów logowania (np. Google, GitHub).
+  - Odzyskiwanie hasła powinno być możliwe zgodnie z US-013.
 
 ## 6. Metryki sukcesu
 
