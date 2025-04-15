@@ -1,0 +1,19 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { RegisterForm } from '../components/auth/RegisterForm';
+export const prerender = false;
+
+// If user is already logged in, redirect to home
+if (Astro.locals.session) {
+  return Astro.redirect('/', 307);
+}
+---
+
+<Layout title="Register - AI Flashcards">
+  <main class="container max-w-lg mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-8 text-center">Create Account</h1>
+    <div class="card border rounded-lg p-6 bg-card">
+      <RegisterForm client:load />
+    </div>
+  </main>
+</Layout>

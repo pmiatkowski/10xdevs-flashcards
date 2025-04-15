@@ -1,0 +1,19 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { LoginForm } from '../components/auth/LoginForm';
+export const prerender = false;
+
+// If user is already logged in, redirect to home
+if (Astro.locals.session) {
+  return Astro.redirect('/', 307);
+}
+---
+
+<Layout title="Login - AI Flashcards">
+  <main class="container max-w-lg mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-8 text-center">Sign In</h1>
+    <div class="card border rounded-lg p-6 bg-card">
+      <LoginForm client:load />
+    </div>
+  </main>
+</Layout>

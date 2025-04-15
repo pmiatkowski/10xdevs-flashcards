@@ -1,12 +1,15 @@
 ---
 import "../styles/global.css";
 import { Toaster } from "../components/ui/sonner";
+import { HeaderAuthControls } from "../components/layout/HeaderAuthControls";
 
 interface Props {
   title?: string;
 }
 
-const { title = "Fiszki AI" } = Astro.props;
+const { title = "Flashcards AI" } = Astro.props;
+const session = Astro.locals.session;
+const user = Astro.locals.user;
 ---
 
 <!doctype html>
@@ -19,7 +22,31 @@ const { title = "Fiszki AI" } = Astro.props;
     <title>{title}</title>
   </head>
   <body>
-    <slot />
+    <header class="sticky top-0 z-50 w-full border-b border-border/40 bg-[#000000]/95 backdrop-blur supports-[backdrop-filter]:bg-[#000000]/80">
+      <div class="container flex h-14 items-center max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center gap-4">
+          <a href="/" class="flex items-center">
+            <span class="font-regular text-white">Flashcards AI</span>
+          </a>
+        </div>
+        <nav class="flex flex-1 justify-end">
+          {session && (
+            <div class="flex gap-6 mr-6">
+              <a href="/" class="text-sm font-medium text-slate-200 hover:text-white transition-colors">
+                Dashboard
+              </a>
+              <a href="/flashcards" class="text-sm font-medium text-slate-200 hover:text-white transition-colors">
+                My Flashcards
+              </a>
+            </div>
+          )}
+          <HeaderAuthControls client:idle isAuthenticated={!!session} userEmail={user?.email ?? null} />
+        </nav>
+      </div>
+    </header>
+    <main class="min-h-screen">
+      <slot />
+    </main>
     <Toaster client:load />
   </body>
 </html>
