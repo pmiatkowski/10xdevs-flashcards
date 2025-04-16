@@ -123,7 +123,12 @@ export interface Database {
       };
     };
     Views: Record<never, never>;
-    Functions: Record<never, never>;
+    Functions: {
+      delete_user_data: {
+        Args: Record<string, never>;
+        Returns: void;
+      };
+    };
     Enums: Record<never, never>;
     CompositeTypes: Record<never, never>;
   };

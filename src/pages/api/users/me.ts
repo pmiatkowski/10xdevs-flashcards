@@ -19,14 +19,13 @@ export async function DELETE(context: APIContext): Promise<Response> {
     });
   }
 
-  const userId = context.locals.session.user.id;
-  const result = await deleteUserAccount(userId);
+  const result = await deleteUserAccount(context.locals.supabase);
 
   if (result.error) {
     logServerError({
       message: "Failed to delete user account",
       error: result.error,
-      userId,
+      userId: context.locals.session.user.id,
       context: { path: "/api/users/me", method: "DELETE" },
     });
 

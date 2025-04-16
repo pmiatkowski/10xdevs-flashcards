@@ -1,6 +1,8 @@
 import { defineMiddleware } from "astro:middleware";
 import { createSupabaseServerInstance } from "../db/supabase.client";
 import { logger } from "../lib/utils";
+import type { MiddlewareResponseHandler } from "astro";
+import { sequence } from "astro:middleware";
 
 // Public paths - Auth API endpoints & Server-Rendered Astro Pages
 const PUBLIC_PATHS = [
@@ -19,6 +21,9 @@ const PUBLIC_PATHS = [
   // AI generation endpoint (US-014)
   "/api/ai/generate",
 ];
+
+// Protected routes that require authentication
+const PROTECTED_ROUTES = ["/flashcards", "/settings"];
 
 export const onRequest = defineMiddleware(async ({ locals, cookies, url, request, redirect }, next) => {
   try {
@@ -49,6 +54,10 @@ export const onRequest = defineMiddleware(async ({ locals, cookies, url, request
 
     if (session && ["/login", "/register", "/forgot-password", "/reset-password"].includes(url.pathname)) {
       return redirect("/");
+    }
+
+    if (PROTECTED_ROUTES.includes(url.pathname) && !session) {
+      return redirect("/login");
     }
 
     return next();
