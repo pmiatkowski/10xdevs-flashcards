@@ -9,7 +9,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { createServerClient } from "@supabase/ssr";
 import type { ApiErrorResponseDto } from "@/types";
 import { toast } from "sonner";
 
@@ -32,28 +31,13 @@ export function AccountSettingsSection() {
         throw new Error(errorData.message || "Failed to delete account");
       }
 
-      // Show success toast
+      // Show success toast and redirect
       toast.success("Account deleted successfully");
-
-      const supabase = createServerClient(import.meta.env.SUPABASE_URL, import.meta.env.SUPABASE_KEY, {
-        cookies: {
-          get: (name) => document.cookie.match(name)?.pop(),
-          set: (name, value, options) => {
-            document.cookie = `${name}=${value}; path=${options.path}; max-age=${options.maxAge}`;
-          },
-          remove: (name, options) => {
-            document.cookie = `${name}=; path=${options.path}; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
-          },
-        },
-      });
-
-      await supabase.auth.signOut();
-      window.location.href = "/";
+      window.location.href = "/login";
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "An error occurred while deleting your account";
       setError(errorMessage);
       toast.error(errorMessage);
-      setIsDialogOpen(true);
     } finally {
       setIsDeleting(false);
     }

@@ -19,7 +19,7 @@ export async function DELETE(context: APIContext): Promise<Response> {
     });
   }
 
-  const result = await deleteUserAccount(context.locals.supabase);
+  const result = await deleteUserAccount(context.locals.session.user.id);
 
   if (result.error) {
     logServerError({
