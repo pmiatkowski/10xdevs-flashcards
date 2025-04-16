@@ -2,7 +2,7 @@
 
 ## 1. Przegląd struktury UI
 
-Architektura interfejsu użytkownika (UI) dla aplikacji Fiszki AI opiera się na połączeniu Astro dla struktury strony, routingu i renderowania statycznego/SSR oraz React dla interaktywnych komponentów UI. Biblioteka Shadcn/ui zostanie wykorzystana do zapewnienia spójnego wyglądu, funkcjonalności i dostępności komponentów. Nawigacja główna będzie realizowana za pomocą paska bocznego oraz belki górnej (header). Zarządzanie stanem będzie głównie lokalne (w komponentach i hookach React), z możliwością użycia Zustand w razie potrzeby. Interakcje z backendem (Supabase) będą odbywać się wyłącznie poprzez dedykowane endpointy API Astro (`/api/*`), wywoływane z komponentów React za pośrednictwem niestandardowych hooków i usług. Uwierzytelnianie jest zarządzane po stronie serwera przez middleware Astro i Supabase Auth.
+Architektura interfejsu użytkownika (UI) dla aplikacji Fiszki AI opiera się na połączeniu Astro dla struktury strony, routingu i renderowania statycznego/SSR oraz React dla interaktywnych komponentów UI. Biblioteka Shadcn/ui zostanie wykorzystana do zapewnienia spójnego wyglądu, funkcjonalności i dostępności komponentów. Nawigacja główna będzie realizowana za pomocą paska bocznego oraz belki górnej (header). Zarządzanie stanem będzie głównie lokalne (w komponentach i hookach React), z możliwością użycia Zustand w razie potrzeby. Interakcje z backendem (Supabase) będą odbywać się wyłącznie poprzez dedykowane endpointy API Astro (`/api/*`), wywoływane z komponentów React za pośrednictwem niestandardowych hooków i usług. Uwierzytelnianie jest zarządzane po stronie serwera przez middleware Astro i Supabase Auth. **Aplikacja będzie wspierać tryb jasny i ciemny, z możliwością przełączania przez użytkownika i zapamiętywaniem wyboru.**
 
 ## 2. Lista widoków
 
@@ -21,7 +21,7 @@ Architektura interfejsu użytkownika (UI) dla aplikacji Fiszki AI opiera się na
 
 * **Ścieżka widoku:** `/` (dostępny dla zalogowanych i niezalogowanych)
 * **Główny cel:** Zapewnienie centralnego punktu dostępu do kluczowej funkcji generowania fiszek AI na podstawie wklejonego tekstu. Umożliwienie wypróbowania funkcji AI dla gości.
-* **Kluczowe informacje do wyświetlenia:** Formularz do wklejenia tekstu i generowania fiszek AI, a poniżej – lista wygenerowanych kandydatów. Dla gości: informacja o konieczności zalogowania/rejestracji w celu zapisania/edycji kandydatów.
+* **Kluczowe informacje do wyświetlenia:** Formularz do wklejenia tekstu i generowania fiszek AI, a poniżej – lista wygenerowanych kandydatów. Dla gości: informacja o konieczności zalogowania/rejestracji w celu zapisania/edycji kandydatów. **Przełącznik trybu ciemnego.**
 * **Kluczowe komponenty widoku:**
   * `AIGenerationForm` (React) – formularz do wklejania tekstu (dostępny dla wszystkich).
   * Lista kandydatów (np. `AICandidateList` oraz `AICandidateListItem`) wyświetlana bezpośrednio pod formularzem.
@@ -29,9 +29,10 @@ Architektura interfejsu użytkownika (UI) dla aplikacji Fiszki AI opiera się na
   * Opcja zbiorczego zapisywania wszystkich kandydatów na raz - **dostępna tylko dla zalogowanych użytkowników**.
   * Komponent `CallToActionLogin` (React/Astro) - widoczny dla gości, zachęcający do logowania/rejestracji w celu zapisania wygenerowanych kandydatów.
   * `Toast` (Shadcn/ui – dla błędów generowania AI i operacji na fiszkach).
+  * **`ThemeToggle` (React) - komponent przełączający tryb jasny/ciemny.**
 * **UX, dostępność i względy bezpieczeństwa:**
-  * UX: Goście mogą wygenerować kandydatów i zobaczyć wyniki. Aby je zapisać lub edytować, muszą się zalogować/zarejestrować (stan formularza i kandydatów powinien zostać zachowany po logowaniu/rejestracji). Zalogowani użytkownicy mają pełną funkcjonalność edycji inline, akceptacji, odrzucania.
-  * Dostępność: Wyraźne etykiety pól, obsługa klawiatury dla formularza i przycisków inline (dla zalogowanych). Odpowiednie atrybuty ARIA. Jasne wskazanie, które akcje są niedostępne dla gości.
+  * UX: Goście mogą wygenerować kandydatów i zobaczyć wyniki. Aby je zapisać lub edytować, muszą się zalogować/zarejestrować (stan formularza i kandydatów powinien zostać zachowany po logowaniu/rejestracji). Zalogowani użytkownicy mają pełną funkcjonalność edycji inline, akceptacji, odrzucania. **Przełącznik trybu ciemnego łatwo dostępny.**
+  * Dostępność: Wyraźne etykiety pól, obsługa klawiatury dla formularza i przycisków inline (dla zalogowanych). Odpowiednie atrybuty ARIA. Jasne wskazanie, które akcje są niedostępne dla gości. **Przełącznik trybu ciemnego dostępny z klawiatury i odpowiednio oznaczony dla czytników ekranu.**
   * Bezpieczeństwo: Walidacja danych wejściowych formularza AI (klient/serwer). Ograniczenie liczby żądań generowania (rate limiting po stronie API). Operacje zapisu/edycji/akceptacji/odrzucenia autoryzowane po stronie API (RLS) - dostępne tylko dla zalogowanych.
 
 ### Widok: Moje Fiszki
@@ -64,12 +65,12 @@ Architektura interfejsu użytkownika (UI) dla aplikacji Fiszki AI opiera się na
 ### Widok: Ustawienia Konta
 
 * **Ścieżka widoku:** `/settings` (**dostępny tylko dla zalogowanych**)
-* **Główny cel:** Umożliwienie użytkownikowi zarządzania kontem, w tym jego usunięcia.
-* **Kluczowe informacje do wyświetlenia:** Adres e-mail użytkownika, Przycisk "Usuń konto".
-* **Kluczowe komponenty widoku:** `Button` (Shadcn/ui - "Usuń konto"), `Dialog` (Shadcn/ui - do potwierdzenia usunięcia).
+* **Główny cel:** Umożliwienie użytkownikowi zarządzania kontem, w tym jego usunięcia **oraz zmiany preferencji trybu wyświetlania.**
+* **Kluczowe informacje do wyświetlenia:** Adres e-mail użytkownika, Przycisk "Usuń konto", **Przełącznik trybu ciemnego.**
+* **Kluczowe komponenty widoku:** `Button` (Shadcn/ui - "Usuń konto"), `Dialog` (Shadcn/ui - do potwierdzenia usunięcia), **`ThemeToggle` (React).**
 * **UX, dostępność i względy bezpieczeństwa:**
-  * UX: Prosty interfejs. Wymagane potwierdzenie przed usunięciem konta.
-  * Dostępność: Poprawna obsługa klawiatury dla przycisku i dialogu potwierdzającego.
+  * UX: Prosty interfejs. Wymagane potwierdzenie przed usunięciem konta. **Przełącznik trybu ciemnego łatwo dostępny.**
+  * Dostępność: Poprawna obsługa klawiatury dla przycisku i dialogu potwierdzającego. **Przełącznik trybu ciemnego dostępny z klawiatury.**
   * Bezpieczeństwo: Widok chroniony przez middleware. Usunięcie konta wymaga potwierdzenia i jest obsługiwane przez bezpieczny endpoint API (`DELETE /api/users/me`).
 
 ## 3. Mapa podróży użytkownika
@@ -128,13 +129,18 @@ Architektura interfejsu użytkownika (UI) dla aplikacji Fiszki AI opiera się na
     * Moje Fiszki (`/flashcards`)
     * Sesja Powtórek (`/review`)
     * Ustawienia (`/settings`)
+    * **Zawiera przełącznik trybu ciemnego (`ThemeToggle`).**
   * **Obszar Treści Głównej:** Slot (`<slot />`) na zawartość poszczególnych stron/widoków.
   * **Kontener na Toast:** Globalny element `Toaster` z Shadcn/ui.
 * **Routing:** Obsługiwany przez Astro (file-based routing w `src/pages`). Middleware (`src/middleware/index.ts`) przechwytuje żądania, sprawdza uwierzytelnienie (sesja Supabase Auth pobierana z ciasteczka) i przekierowuje na `/login`, jeśli użytkownik nie jest zalogowany, a próbuje uzyskać dostęp do chronionego widoku (np. `/flashcards`, `/review`, `/settings`). Strona główna (`/`) jest dostępna dla wszystkich, ale jej zawartość/funkcjonalność jest dostosowywana w komponencie `DashboardView` na podstawie stanu uwierzytelnienia przekazanego z Astro.
+* **Zarządzanie trybem ciemnym:**
+  * **Implementacja:** Wykorzystanie wbudowanej obsługi trybu ciemnego w Tailwind CSS (`dark:` wariant) i Shadcn/ui. Klasa `dark` będzie dodawana/usuwana z elementu `<html>`.
+  * **Przełączanie:** Komponent `ThemeToggle` (React) będzie odpowiedzialny za zmianę trybu.
+  * **Persystencja:** Wybrany tryb (jasny/ciemny) będzie zapisywany w `localStorage` przeglądarki, aby zachować wybór użytkownika między sesjami. Odczytanie preferencji z `localStorage` i ustawienie odpowiedniej klasy na `<html>` nastąpi po stronie klienta przy inicjalizacji aplikacji (np. w skrypcie w `Layout.astro` lub w głównym komponencie React).
 
 ## 5. Kluczowe komponenty
 
-* **`Layout.astro`:** Główny szablon strony, zawiera logikę wyświetlania belki górnej (z linkami logowania/rejestracji/wylogowania w zależności od stanu sesji Supabase pobranej po stronie serwera), warunkowo renderuje `SidebarNav` i zawiera slot na treść strony oraz `Toaster`.
+* **`Layout.astro`:** Główny szablon strony, zawiera logikę wyświetlania belki górnej (z linkami logowania/rejestracji/wylogowania w zależności od stanu sesji Supabase pobranej po stronie serwera), warunkowo renderuje `SidebarNav` i zawiera slot na treść strony oraz `Toaster`. **Może zawierać skrypt inicjalizujący tryb ciemny na podstawie `localStorage`.**
 * **`HeaderAuthLinks` (Astro/React):** Komponent (lub logika w `Layout.astro`) renderujący odpowiednie linki/przyciski w belce górnej na podstawie stanu uwierzytelnienia.
 * **`SidebarNav` (React):** Komponent paska bocznego z linkami nawigacyjnymi (`NavMenu` Shadcn/ui), renderowany warunkowo w `Layout.astro` dla zalogowanych użytkowników.
 * **`FlashcardForm` (React):** Formularz do tworzenia/edycji fiszek. Używa `react-hook-form`, Zod, `Input`, `Textarea`, `Button`, liczników znaków.
@@ -145,10 +151,12 @@ Architektura interfejsu użytkownika (UI) dla aplikacji Fiszki AI opiera się na
 * **`FlashcardListItem` (React):** Reprezentuje pojedynczą zapisaną fiszkę z przyciskami "Edytuj", "Usuń".
 * **`CallToActionLogin` (React/Astro):** Komponent wyświetlany na Dashboardzie dla gości po wygenerowaniu kandydatów.
 * **`LoginForm`, `RegisterForm`, `ForgotPasswordForm`, `ResetPasswordForm` (React):** Komponenty formularzy do obsługi autentykacji.
-* **`Pagination`, `DropdownMenu`, `Select`, `Dialog`, `Toast`, `Button`, `Input`, `Textarea`, `Card` (Shadcn/ui):** Wykorzystywane w różnych komponentach.
+* **`ThemeToggle` (React):** Nowy komponent (np. przycisk z ikoną słońca/księżyca) odpowiedzialny za przełączanie trybu ciemnego. Będzie odczytywał i zapisywał stan w `localStorage` oraz modyfikował klasę na elemencie `<html>`.
+* **`Pagination`, `DropdownMenu`, `Select`, `Dialog`, `Toast`, `Button`, `Input`, `Textarea`, `Card` (Shadcn/ui):** Wykorzystywane w różnych komponentach. **Komponenty Shadcn/ui automatycznie dostosują swój wygląd do aktywnego trybu (jasny/ciemny) na podstawie klasy `dark` na `<html>`.**
 * **Hooki niestandardowe (React):**
   * `useAuth()`: Może obsługiwać logikę formularzy logowania/rejestracji/odzyskiwania, zarządzanie stanem ładowania/błędów tych operacji. Interakcja z API Supabase Auth odbywa się przez endpointy API Astro.
   * `useFlashcards()`: Pobiera listę fiszek (`GET /api/flashcards`), obsługuje CRUD. Dostępny tylko w kontekście zalogowanego użytkownika.
   * `useAICandidates()`: Pobiera listę kandydatów (`GET /api/ai-candidates`), obsługuje akceptację/odrzucenie/edycję. Dostępny tylko w kontekście zalogowanego użytkownika.
   * `useAIGeneration()`: Obsługuje wysyłanie tekstu (`POST /api/ai/generate`), zarządza stanem ładowania/błędu. Musi obsługiwać zarówno przypadki zalogowane, jak i niezalogowane (gość). Może potrzebować logiki do tymczasowego przechowywania danych dla gości.
   * `useDeleteUser()`: Obsługuje żądanie usunięcia konta (`DELETE /api/users/me`).
+  * **`useTheme()`:** Nowy hook (lub logika w `ThemeToggle`) zarządzający stanem trybu ciemnego, interakcją z `localStorage` i aktualizacją klasy `<html>`.

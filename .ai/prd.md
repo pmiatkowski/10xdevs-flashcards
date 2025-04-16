@@ -46,6 +46,10 @@ Manualne tworzenie wysokiej jakości fiszek edukacyjnych jest procesem czasochł
   - System zbiera informacje o liczbie fiszek wygenerowanych przez AI.
   - System zbiera informacje o liczbie fiszek zaakceptowanych przez użytkownika spośród wygenerowanych przez AI.
   - Statystyki są dostępne dla użytkownika w formie podsumowania w panelu głównym.
+- RF-008: Tryb ciemny:
+  - Użytkownik ma możliwość przełączania interfejsu aplikacji pomiędzy trybem jasnym a ciemnym.
+  - Przełącznik trybu ciemnego jest dostępny w panelu głównym oraz w ustawieniach konta.
+  - Wybrany tryb jest zapisywany (np. poprzez cookies lub w ustawieniach użytkownika) i utrzymywany przy kolejnych wizytach.
 
 ## 4. Granice produktu
 
@@ -214,6 +218,14 @@ Następujące funkcjonalności celowo NIE wchodzą w zakres wersji MVP (Minimum 
   - Użytkownik może się wylogować z systemu poprzez przycisk w prawym górnym rogu w głównym @Layout.astro.
   - Nie korzystamy z zewnętrznych serwisów logowania (np. Google, GitHub).
   - Odzyskiwanie hasła powinno być możliwe zgodnie z US-013.
+
+- ID: US-016
+  - Tytuł: Przełączanie trybu ciemnego
+  - Opis: Jako użytkownik, chcę móc przełączać interfejs aplikacji pomiędzy trybem jasnym a ciemnym, aby dostosować wygląd aplikacji do moich preferencji oraz warunków oświetleniowych.
+  - Kryteria akceptacji:
+    - W interfejsie dostępny jest przełącznik trybu ciemnego.
+    - Przełączenie trybu zmienia motyw interfejsu bez konieczności odświeżania strony.
+    - Wybrany tryb jest zapisywany i pozostaje aktywny przy kolejnych wizytach.
 
 ## 6. Metryki sukcesu
 
