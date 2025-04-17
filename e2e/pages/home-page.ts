@@ -1,9 +1,10 @@
 // e2e/pages/home-page.ts
-import { Page } from "@playwright/test";
+import { type Page, expect } from "@playwright/test";
 import { BasePage } from "./base-page";
 
 /**
  * Home page object model
+ * Represents the main landing page of the application
  */
 export class HomePage extends BasePage {
   constructor(page: Page) {
@@ -12,11 +13,15 @@ export class HomePage extends BasePage {
 
   // Selectors as getters
   get loginButton() {
-    return this.page.getByRole("link", { name: /login/i });
+    return this.page.locator('a[href="/login"]');
   }
 
   get registerButton() {
-    return this.page.getByRole("link", { name: /register/i });
+    return this.page.locator('a[href="/register"]');
+  }
+
+  get userEmailDropdown() {
+    return this.page.getByRole("button").filter({ hasText: /^.+@.+\..+$/ });
   }
 
   get heading() {
@@ -37,6 +42,12 @@ export class HomePage extends BasePage {
   // Assertions
   async expectPageLoaded() {
     await this.heading.isVisible();
-    await this.page.waitForURL("**/");
+    await this.page.waitForURL("/");
+  }
+
+  async expectUserLoggedIn(email: string) {
+    const userEmailElement = this.userEmailDropdown;
+    await userEmailElement.isVisible();
+    await expect(userEmailElement).toContainText(email);
   }
 }

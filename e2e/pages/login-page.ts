@@ -1,5 +1,5 @@
 // e2e/pages/login-page.ts
-import { Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
 import { BasePage } from "./base-page";
 
 /**
@@ -10,21 +10,21 @@ export class LoginPage extends BasePage {
     super(page, "/login");
   }
 
-  // Selectors
+  // Selectors using more reliable locators
   get emailInput() {
-    return this.page.getByLabel("Email");
+    return this.page.getByLabel(/email/i);
   }
 
   get passwordInput() {
-    return this.page.getByLabel("Password");
+    return this.page.getByLabel(/password/i);
   }
 
   get loginButton() {
-    return this.page.getByRole("button", { name: /sign in|login/i });
+    return this.page.getByRole("button", { name: /sign in/i });
   }
 
   get forgotPasswordLink() {
-    return this.page.getByRole("link", { name: /forgot password/i });
+    return this.page.getByRole("link", { name: /forgot your password/i });
   }
 
   // Actions
@@ -45,6 +45,6 @@ export class LoginPage extends BasePage {
   }
 
   async expectLoginSuccess() {
-    await this.page.waitForURL("**/flashcards", { timeout: 10000 });
+    await this.page.waitForURL("/", { timeout: 10000 });
   }
 }

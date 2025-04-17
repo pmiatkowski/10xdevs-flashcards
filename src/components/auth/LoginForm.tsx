@@ -92,6 +92,7 @@ export const LoginForm = () => {
             id="email"
             name="email"
             type="email"
+            data-test-id="email-input"
             value={data.email}
             onChange={handleChange}
             placeholder="Enter your email"
@@ -114,6 +115,7 @@ export const LoginForm = () => {
             id="password"
             name="password"
             type="password"
+            data-test-id="password-input"
             value={data.password}
             onChange={handleChange}
             placeholder="Enter your password"
@@ -130,7 +132,7 @@ export const LoginForm = () => {
       </div>
 
       <div className="space-y-4">
-        <Button type="submit" className="w-full" disabled={isLoading}>
+        <Button type="submit" className="w-full" disabled={isLoading} data-test-id="signin-button">
           {isLoading ? (
             <>
               <svg

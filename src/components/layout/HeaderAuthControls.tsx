@@ -41,10 +41,18 @@ export const HeaderAuthControls = ({ isAuthenticated, userEmail }: HeaderAuthCon
   if (!isAuthenticated) {
     return (
       <div className="flex items-center gap-4">
-        <a href="/login" className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors">
+        <a
+          href="/login"
+          data-test-id="signin-link"
+          className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors"
+        >
           Sign In
         </a>
-        <a href="/register" className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors">
+        <a
+          href="/register"
+          data-test-id="signup-link"
+          className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors"
+        >
           Sign Up
         </a>
       </div>
@@ -56,6 +64,7 @@ export const HeaderAuthControls = ({ isAuthenticated, userEmail }: HeaderAuthCon
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
+            data-test-id="user-email-dropdown"
             variant="ghost"
             size="sm"
             className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors"
