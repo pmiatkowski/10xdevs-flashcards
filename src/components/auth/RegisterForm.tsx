@@ -77,17 +77,46 @@ export const RegisterForm = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setData((prev) => ({
-      ...prev,
+    const newData = {
+      ...data,
       [name]: value,
-    }));
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors[name];
-        return newErrors;
-      });
+    };
+    setData(newData);
+
+    // Always clear the error for the field being changed
+    setErrors((prev) => {
+      const newErrors = { ...prev };
+      delete newErrors[name];
+      return newErrors;
+    });
+
+    try {
+      // Validate individual field
+      if (name === "email") {
+        registerSchema.shape.email.parse(value);
+      } else if (name === "password") {
+        registerSchema.shape.password.parse(value);
+      } else if (name === "confirmPassword" && newData.password) {
+        // Only validate confirmation if we have a password
+        if (value === newData.password) {
+          registerSchema.shape.confirmPassword.parse(value);
+        } else {
+          throw new z.ZodError([
+            {
+              code: "custom",
+              message: "Passwords don't match",
+              path: ["confirmPassword"],
+            },
+          ]);
+        }
+      }
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        setErrors((prev) => ({
+          ...prev,
+          [name]: err.errors[0].message,
+        }));
+      }
     }
   };
 
@@ -106,7 +135,7 @@ export const RegisterForm = () => {
           aria-describedby={errors.email ? "email-error" : undefined}
         />
         {errors.email && (
-          <p id="email-error" className="text-sm text-red-500">
+          <p id="email-error" className="text-sm text-red-500" role="alert">
             {errors.email}
           </p>
         )}
@@ -125,7 +154,7 @@ export const RegisterForm = () => {
           aria-describedby={errors.password ? "password-error" : undefined}
         />
         {errors.password && (
-          <p id="password-error" className="text-sm text-red-500">
+          <p id="password-error" className="text-sm text-red-500" role="alert">
             {errors.password}
           </p>
         )}
@@ -144,7 +173,7 @@ export const RegisterForm = () => {
           aria-describedby={errors.confirmPassword ? "confirm-password-error" : undefined}
         />
         {errors.confirmPassword && (
-          <p id="confirm-password-error" className="text-sm text-red-500">
+          <p id="confirm-password-error" className="text-sm text-red-500" role="alert">
             {errors.confirmPassword}
           </p>
         )}

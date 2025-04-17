@@ -47,8 +47,8 @@ export const LoginForm = () => {
         return;
       }
 
-      // Redirect to home page on success
-      window.location.href = "/";
+      // Redirect to home page on success (without trailing slash)
+      window.location.href = window.location.origin;
     } catch (err) {
       if (err instanceof z.ZodError) {
         const fieldErrors: Record<string, string> = {};
@@ -72,50 +72,61 @@ export const LoginForm = () => {
       ...prev,
       [name]: value,
     }));
-    // Clear error when user starts typing
+
+    // Only clear error for the field being changed
     if (errors[name]) {
-      setErrors((prev) => Object.fromEntries(Object.entries(prev).filter(([key]) => key !== name)));
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6" noValidate>
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          name="email"
-          type="email"
-          value={data.email}
-          onChange={handleChange}
-          placeholder="Enter your email"
-          disabled={isLoading}
-          aria-describedby={errors.email ? "email-error" : undefined}
-        />
-        {errors.email && (
-          <p id="email-error" className="text-sm text-red-500">
-            {errors.email}
-          </p>
-        )}
+        <div>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            value={data.email}
+            onChange={handleChange}
+            placeholder="Enter your email"
+            disabled={isLoading}
+            aria-invalid={!!errors.email}
+            aria-describedby={errors.email ? "email-error" : undefined}
+          />
+          {errors.email && (
+            <p id="email-error" className="text-sm text-destructive mt-1" role="alert">
+              {errors.email}
+            </p>
+          )}
+        </div>
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="password">Password</Label>
-        <Input
-          id="password"
-          name="password"
-          type="password"
-          value={data.password}
-          onChange={handleChange}
-          placeholder="Enter your password"
-          disabled={isLoading}
-          aria-describedby={errors.password ? "password-error" : undefined}
-        />
-        {errors.password && (
-          <p id="password-error" className="text-sm text-red-500">
-            {errors.password}
-          </p>
-        )}
+        <div>
+          <Input
+            id="password"
+            name="password"
+            type="password"
+            value={data.password}
+            onChange={handleChange}
+            placeholder="Enter your password"
+            disabled={isLoading}
+            aria-invalid={!!errors.password}
+            aria-describedby={errors.password ? "password-error" : undefined}
+          />
+          {errors.password && (
+            <p id="password-error" className="text-sm text-destructive mt-1" role="alert">
+              {errors.password}
+            </p>
+          )}
+        </div>
       </div>
 
       <div className="space-y-4">
