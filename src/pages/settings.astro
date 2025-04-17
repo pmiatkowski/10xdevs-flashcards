@@ -13,20 +13,20 @@ const userEmail = session.user.email;
 ---
 
 <Layout title="Settings">
-  <main class="container max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <main class="container max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <h1 class="text-3xl font-bold mb-8">Settings</h1>
 
     <div class="space-y-8">
-      <section class="pb-6 border-b border-border/40">
+      <section class="p-4 rounded-lg border bg-card text-card-foreground shadow-sm" transition:animate="fade">
         <h2 class="text-lg font-semibold mb-4">Account Information</h2>
         <p class="text-foreground/80">{userEmail}</p>
       </section>
 
-      <section class="pb-6 border-b border-border/40">
+      <section class="p-4 rounded-lg border bg-card text-card-foreground shadow-sm" transition:animate="fade">
         <ThemeSettingsSection client:only="react" />
       </section>
 
-      <section>
+      <section class="p-4 rounded-lg border bg-card text-card-foreground shadow-sm" transition:animate="fade">
         <AccountSettingsSection client:load />
       </section>
     </div>
