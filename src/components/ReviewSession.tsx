@@ -92,8 +92,13 @@ export default function ReviewSession() {
                     Show Answer
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>
-                  Press <kbd className="px-2 py-1 bg-muted rounded text-xs">{shortcuts.showAnswer.label}</kbd>
+                <TooltipContent sideOffset={5}>
+                  <div className="relative z-10">
+                    {"Press "}
+                    <kbd className="px-2 py-1 bg-muted text-muted-foreground font-mono text-xs rounded border">
+                      {shortcuts.showAnswer.label}
+                    </kbd>
+                  </div>
                 </TooltipContent>
               </Tooltip>
             ) : (
@@ -108,8 +113,13 @@ export default function ReviewSession() {
                       Hard
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>
-                    Press <kbd className="px-2 py-1 bg-muted rounded text-xs">{shortcuts.rateHard.label}</kbd>
+                  <TooltipContent sideOffset={5}>
+                    <div className="relative z-10">
+                      {"Press "}
+                      <kbd className="px-2 py-1 bg-muted text-muted-foreground font-mono text-xs rounded border">
+                        {shortcuts.rateHard.label}
+                      </kbd>
+                    </div>
                   </TooltipContent>
                 </Tooltip>
 
@@ -123,8 +133,13 @@ export default function ReviewSession() {
                       Good
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>
-                    Press <kbd className="px-2 py-1 bg-muted rounded text-xs">{shortcuts.rateGood.label}</kbd>
+                  <TooltipContent sideOffset={5}>
+                    <div className="relative z-10">
+                      {"Press "}
+                      <kbd className="px-2 py-1 bg-muted text-muted-foreground font-mono text-xs rounded border">
+                        {shortcuts.rateGood.label}
+                      </kbd>
+                    </div>
                   </TooltipContent>
                 </Tooltip>
 
@@ -138,8 +153,13 @@ export default function ReviewSession() {
                       Easy
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>
-                    Press <kbd className="px-2 py-1 bg-muted rounded text-xs">{shortcuts.rateEasy.label}</kbd>
+                  <TooltipContent sideOffset={5}>
+                    <div className="relative z-10">
+                      {"Press "}
+                      <kbd className="px-2 py-1 bg-muted text-muted-foreground font-mono text-xs rounded border">
+                        {shortcuts.rateEasy.label}
+                      </kbd>
+                    </div>
                   </TooltipContent>
                 </Tooltip>
               </>

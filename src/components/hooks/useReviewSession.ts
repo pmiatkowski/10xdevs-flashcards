@@ -140,10 +140,21 @@ export function useReviewSession() {
     [srService, storageService]
   );
 
-  const resetSession = useCallback(() => {
-    setState(initialState);
-    fetchAndInitializeSession();
-  }, [fetchAndInitializeSession]);
+  const resetSession = useCallback(async () => {
+    setState(() => ({ ...initialState })); // Reset to initial state completely
+    try {
+      // Clear any existing SR state for a fresh start
+      storageService.clearState();
+      // Fetch and initialize session
+      await fetchAndInitializeSession();
+    } catch (error) {
+      setState((prev) => ({
+        ...prev,
+        isLoading: false,
+        error: formatApiError(error),
+      }));
+    }
+  }, [fetchAndInitializeSession, storageService]);
 
   const currentCard = useMemo(() => {
     return state.reviewQueue[state.currentCardIndex] ?? null;
