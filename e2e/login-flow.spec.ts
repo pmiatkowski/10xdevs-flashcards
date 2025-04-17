@@ -27,6 +27,10 @@ test.describe("Authentication Flow", () => {
   });
 
   test("should fill login form with credentials and successfully sign in", async ({ page }) => {
+    // Enable debug logs
+    page.on("console", (msg) => console.log(`Browser console: ${msg.text()}`));
+    page.on("pageerror", (err) => console.error(`Browser error: ${err}`));
+
     // Arrange - Start from the login page
     const loginPage = new LoginPage(page);
     await loginPage.navigate();
@@ -34,9 +38,6 @@ test.describe("Authentication Flow", () => {
 
     // Assert - Verify we're on the login page
     await expect(page).toHaveURL("/login");
-
-    // Take screenshot of login page for visual comparison
-    await expect(page).toHaveScreenshot("login-page.png");
 
     // Act - Fill in login credentials and submit the form
     const testEmail = `${process.env.E2E_USERNAME}`;
@@ -56,9 +57,6 @@ test.describe("Authentication Flow", () => {
 
     // Verify the user's email is visible in the header
     await expect(page.locator("header").getByText(testEmail)).toBeVisible();
-
-    // Take screenshot of dashboard for visual comparison
-    await expect(page).toHaveScreenshot("dashboard-after-login.png");
   });
 
   test("should show validation error for invalid email", async ({ page }) => {

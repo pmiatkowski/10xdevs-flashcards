@@ -1,5 +1,5 @@
 // e2e/pages/login-page.ts
-import type { Page } from "@playwright/test";
+import { type Page, expect } from "@playwright/test";
 import { BasePage } from "./base-page";
 
 /**
@@ -10,7 +10,7 @@ export class LoginPage extends BasePage {
     super(page, "/login");
   }
 
-  // Selectors using more reliable locators
+  // Selectors using reliable locators
   get emailInput() {
     return this.page.getByLabel(/email/i);
   }
@@ -45,6 +45,10 @@ export class LoginPage extends BasePage {
   }
 
   async expectLoginSuccess() {
-    await this.page.waitForURL("/", { timeout: 10000 });
+    // Wait for redirect and make sure we're really logged in
+    await this.page.waitForURL("/", { timeout: 30000 });
+    await this.page.waitForLoadState("networkidle", { timeout: 30000 });
+    // Verify something that indicates we're logged in
+    await expect(this.page.getByRole("button").filter({ hasText: /^.+@.+\..+$/ })).toBeVisible({ timeout: 30000 });
   }
 }

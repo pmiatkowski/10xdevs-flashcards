@@ -27,7 +27,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || "http://localhost:4321",
+    baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || "http://localhost:3001",
     /* Collect trace when retrying the failed test. */
     trace: "on-first-retry",
     /* Take screenshot on failure */
@@ -47,7 +47,7 @@ export default defineConfig({
   /* Run your local dev server before starting the tests */
   webServer: {
     command: "npm run dev",
-    url: process.env.PLAYWRIGHT_TEST_BASE_URL || "http://localhost:4321",
+    url: process.env.PLAYWRIGHT_TEST_BASE_URL || "http://localhost:3001",
     reuseExistingServer: !process.env.CI,
   },
 });
