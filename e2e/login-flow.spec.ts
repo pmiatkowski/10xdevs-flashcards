@@ -26,7 +26,7 @@ test.describe("Authentication Flow", () => {
     await expect(loginPage.loginButton).toBeVisible();
   });
 
-  test("should fill login form with credentials", async ({ page }) => {
+  test("should fill login form with credentials and successfully sign in", async ({ page }) => {
     // Arrange - Start from the login page
     const loginPage = new LoginPage(page);
     await loginPage.navigate();
@@ -35,17 +35,30 @@ test.describe("Authentication Flow", () => {
     // Assert - Verify we're on the login page
     await expect(page).toHaveURL("/login");
 
-    // Act - Fill in login credentials but don't submit
-    // This tests just the field interactions
-    const testEmail = "test@example.com";
-    const testPassword = "securepassword123";
+    // Take screenshot of login page for visual comparison
+    await expect(page).toHaveScreenshot("login-page.png");
 
-    await loginPage.emailInput.fill(testEmail);
-    await loginPage.passwordInput.fill(testPassword);
+    // Act - Fill in login credentials and submit the form
+    const testEmail = `${process.env.E2E_USERNAME}`;
+    const testPassword = `${process.env.E2E_PASSWORD}`;
 
-    // Assert - Verify fields contain expected values
-    await expect(loginPage.emailInput).toHaveValue(testEmail);
-    await expect(loginPage.passwordInput).toHaveValue(testPassword);
+    // Use the login method from the page object
+    await loginPage.login(testEmail, testPassword);
+
+    // Assert - Verify successful login and redirection to dashboard
+    await loginPage.expectLoginSuccess();
+
+    // Additional assertion to ensure we're on the dashboard
+    await expect(page).toHaveURL("/");
+
+    // Verify the DashboardView component is visible
+    await expect(page.locator(".max-w-5xl:has-text('AI Flashcard Generator')")).toBeVisible();
+
+    // Verify the user's email is visible in the header
+    await expect(page.locator("header").getByText(testEmail)).toBeVisible();
+
+    // Take screenshot of dashboard for visual comparison
+    await expect(page).toHaveScreenshot("dashboard-after-login.png");
   });
 
   test("should show validation error for invalid email", async ({ page }) => {

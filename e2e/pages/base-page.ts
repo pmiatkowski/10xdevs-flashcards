@@ -1,5 +1,5 @@
 // e2e/pages/base-page.ts
-import { Locator, Page } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
 
 /**
  * Base Page class that all Page Objects will inherit from
