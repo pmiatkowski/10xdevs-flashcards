@@ -1,0 +1,17 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ReviewSession from '../components/ReviewSession';
+
+// Redirect if not authenticated
+const session = Astro.locals.session;
+if (!session) {
+  return Astro.redirect('/login');
+}
+---
+
+<Layout title="Review Flashcards">
+  <main class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-8">Review Session</h1>
+    <ReviewSession client:load />
+  </main>
+</Layout>
