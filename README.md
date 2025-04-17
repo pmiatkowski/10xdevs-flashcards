@@ -45,6 +45,8 @@ This application addresses the common problem of manual flashcard creation being
   * [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/) (Component testing)
   * [Playwright](https://playwright.dev/) (End-to-end testing)
   * [Axe DevTools](https://www.deque.com/axe/) (Accessibility testing)
+  * [Vitest Coverage](https://vitest.dev/guide/coverage.html) (Code coverage measurement using c8/v8)
+  * [Istanbul](https://istanbul.js.org/) (Code coverage reporting)
 * **Development Tools:**
   * [Node.js](https://nodejs.org/) (v22.14.0 recommended)
   * [ESLint](https://eslint.org/)

@@ -1,5 +1,5 @@
 import { renderHook } from "@testing-library/react";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { useReviewKeyboard } from "../useReviewKeyboard";
 
 describe("useReviewKeyboard", () => {
@@ -101,8 +101,16 @@ describe("useReviewKeyboard", () => {
     document.body.appendChild(input);
     input.focus();
 
-    // Simulate key press with input focused
-    window.dispatchEvent(new KeyboardEvent("keydown", { key: " " }));
+    // We need to create a mock event where event.target is the input element
+    const mockEvent = new KeyboardEvent("keydown", { key: " " });
+    // Override the target property using Object.defineProperty
+    Object.defineProperty(mockEvent, "target", {
+      value: input,
+      enumerable: true,
+    });
+
+    // Dispatch the mock event
+    window.dispatchEvent(mockEvent);
 
     expect(showAnswer).not.toHaveBeenCalled();
     expect(handleRating).not.toHaveBeenCalled();

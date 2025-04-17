@@ -26,6 +26,8 @@ Testing - Kompleksowa infrastruktura testowa:
 - Axe DevTools do testów dostępności (accessibility)
 - Mock Service Worker (MSW) do mockowania API w testach
 - Lighthouse do testowania wydajności i zgodności z best practices
+- Vitest Coverage z c8/v8 do mierzenia pokrycia kodu testami jednostkowymi i integracyjnymi
+- Istanbul do generowania raportów pokrycia kodu i wizualizacji obszarów wymagających testów
 
 CI/CD i Hosting:
 

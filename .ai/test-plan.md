@@ -164,6 +164,10 @@ Zgodnie z dokumentacją projektu, następujące obszary są poza zakresem testó
 * **Narzędzia do testów wizualnych:** Playwright + Percy.io/Applitools
 * **Narzędzia do testów dostępności:** Axe DevTools, Lighthouse, czytniki ekranu (NVDA, VoiceOver)
 * **Narzędzia do testów kompatybilności:** BrowserStack / Sauce Labs (opcjonalnie)
+* **Narzędzia do pomiaru pokrycia kodu testami:**
+  * Vitest Coverage (zintegrowany z c8/v8) dla testów jednostkowych i integracyjnych
+  * Istanbul do generowania szczegółowych raportów pokrycia i wizualizacji
+  * GitHub Actions do automatycznego publikowania raportów pokrycia w ramach CI/CD
 * **System Zarządzania Testami (TMS):** TestRail, Zephyr Scale (Jira plugin), lub prostsze rozwiązania jak arkusze kalkulacyjne (w zależności od skali projektu).
 * **System Śledzenia Błędów:** Jira, GitHub Issues.
 * **System CI/CD:** GitHub Actions (do automatycznego uruchamiania testów).
@@ -203,10 +207,15 @@ Zgodnie z dokumentacją projektu, następujące obszary są poza zakresem testó
 ### 8.2. Kryteria Wyjścia (Zakończenia Testów)
 
 * Wykonano wszystkie zaplanowane scenariusze testowe (manualne i automatyczne).
-* Osiągnięto zdefiniowany poziom pokrycia kodu testami (np. 80% dla testów jednostkowych/integracyjnych).
+* Osiągnięto zdefiniowany poziom pokrycia kodu testami:
+  * Minimum 80% pokrycia kodu dla testów jednostkowych i integracyjnych (mierzone przez Vitest Coverage)
+  * Minimum 90% pokrycia dla krytycznych modułów (serwisy AI, logika Spaced Repetition, autentykacja)
+  * Minimum 70% pokrycia dla komponentów React (mierzone przez React Testing Library)
+  * Wszystkie główne ścieżki użytkownika pokryte testami E2E (Playwright)
 * Wszystkie krytyczne (Critical/Blocker) i wysokie (High) błędy zostały naprawione i zweryfikowane.
 * Liczba pozostałych błędów o niższym priorytecie (Medium/Low) jest akceptowalna przez interesariuszy.
 * Wyniki testów wydajnościowych, bezpieczeństwa i dostępności spełniają zdefiniowane progi akceptacji.
+* Raporty pokrycia kodu zostały wygenerowane i są dostępne w CI/CD (GitHub Actions).
 * Pomyślnie zakończono testy UAT.
 * Podpisano raport końcowy z testów.
 

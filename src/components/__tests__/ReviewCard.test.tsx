@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import ReviewCard from "../ReviewCard";
 
@@ -32,14 +32,14 @@ describe("ReviewCard", () => {
   it("should have proper ARIA attributes", () => {
     render(<ReviewCard card={mockCard} isBackVisible={true} />);
 
-    // Check front side
-    const card = screen.getByRole("region");
-    expect(card).toHaveAttribute("aria-labelledby");
+    // Check front side - use getAllByRole since there are multiple regions
+    const cards = screen.getAllByRole("region");
+    expect(cards[0]).toHaveAttribute("aria-labelledby");
 
     // Check separator
     expect(screen.getByRole("separator")).toHaveAttribute("aria-orientation", "horizontal");
 
-    // Check answer section
+    // Check answer section - use more specific query with name
     const answer = screen.getByRole("region", { name: "Answer" });
     expect(answer).toHaveAttribute("aria-live", "polite");
     expect(answer).toHaveAttribute("aria-atomic", "true");
@@ -49,9 +49,9 @@ describe("ReviewCard", () => {
     const onKeyPress = vi.fn();
     render(<ReviewCard card={mockCard} isBackVisible={false} onKeyPress={onKeyPress} />);
 
+    // Use fireEvent instead of dispatchEvent for better React event handling
     const card = screen.getByRole("region");
-    card.focus();
-    card.dispatchEvent(new KeyboardEvent("keydown", { key: " " }));
+    fireEvent.keyDown(card, { key: " " });
 
     expect(onKeyPress).toHaveBeenCalled();
   });
