@@ -74,11 +74,16 @@ export const FlashcardList: React.FC<FlashcardListProps> = ({ limit = 20, sortBy
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-semibold">My Flashcards</h1>
-        <Button variant="default" onClick={() => setIsFormVisible(true)} disabled={isFormVisible}>
-          Create Manually
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="default" onClick={() => setIsFormVisible(true)} disabled={isFormVisible}>
+            Create Manually
+          </Button>
+          <Button variant="outline" asChild disabled={flashcards.length === 0}>
+            <a href="/review">Review Cards</a>
+          </Button>
+        </div>
       </div>
 
       <div className="flex justify-between items-center">

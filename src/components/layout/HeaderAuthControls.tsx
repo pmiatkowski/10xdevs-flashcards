@@ -32,7 +32,7 @@ export const HeaderAuthControls = ({ isAuthenticated, userEmail }: HeaderAuthCon
 
       // Redirect to login page
       window.location.href = "/login";
-    } catch (error) {
+    } catch {
       toast.error("Failed to sign out");
       setIsLoading(false);
     }
