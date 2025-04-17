@@ -23,7 +23,7 @@ const user = Astro.locals.user;
     <title>{title}</title>
   </head>
   <body>
-    <ThemeProvider client:load>
+    <ThemeProvider client:only="react">
       <header class="sticky top-0 z-50 w-full border-b border-border/40 bg-background backdrop-blur supports-[backdrop-filter]:bg-background/80">
         <div class="container flex h-14 items-center max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div class="flex items-center gap-4">

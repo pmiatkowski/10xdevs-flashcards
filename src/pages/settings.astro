@@ -1,34 +1,34 @@
 ---
-import { ViewTransitions } from 'astro:transitions';
-import Layout from "../layouts/Layout.astro";
-import { AccountSettingsSection } from "../components/AccountSettingsSection";
-import { ThemeSettingsSection } from "../components/ThemeSettingsSection";
+import Layout from '../layouts/Layout.astro';
+import { AccountSettingsSection } from '../components/AccountSettingsSection';
+import { ThemeSettingsSection } from '../components/ThemeSettingsSection';
 
-// Get user email from session
-const user = Astro.locals.user;
-if (!user?.email) {
-  return Astro.redirect("/login");
+// Redirect if not authenticated
+const session = Astro.locals.session;
+if (!session) {
+  return Astro.redirect('/login');
 }
+
+const userEmail = session.user.email;
 ---
 
-<Layout title="Settings - AI Flashcards">
-  <ViewTransitions />
-  <div class="container max-w-5xl mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-8" transition:name="page-title">Account Settings</h1>
+<Layout title="Settings">
+  <main class="container max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <h1 class="text-3xl font-bold mb-8">Settings</h1>
 
-    <section class="space-y-6">
-      <div class="p-4 rounded-lg border bg-card text-card-foreground shadow-sm" transition:animate="fade">
-        <h2 class="text-lg font-semibold mb-2">Account Information</h2>
-        <p class="text-muted-foreground">Email: {user.email}</p>
-      </div>
+    <div class="space-y-8">
+      <section class="pb-6 border-b border-border/40">
+        <h2 class="text-lg font-semibold mb-4">Account Information</h2>
+        <p class="text-foreground/80">{userEmail}</p>
+      </section>
 
-      <div class="p-4 rounded-lg border bg-card text-card-foreground shadow-sm" transition:animate="fade">
-        <ThemeSettingsSection client:load />
-      </div>
+      <section class="pb-6 border-b border-border/40">
+        <ThemeSettingsSection client:only="react" />
+      </section>
 
-      <div class="p-4 rounded-lg border bg-card text-card-foreground shadow-sm" transition:animate="fade">
+      <section>
         <AccountSettingsSection client:load />
-      </div>
-    </section>
-  </div>
+      </section>
+    </div>
+  </main>
 </Layout>

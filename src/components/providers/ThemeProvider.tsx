@@ -19,14 +19,28 @@ export const useTheme = () => {
 };
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  // Initialize theme state and apply it immediately
   const [theme, setThemeState] = useState<Theme>(() => {
     if (typeof window === "undefined") return "light";
+
     try {
+      // Check localStorage first
       const stored = localStorage.getItem("theme") as Theme;
       if (stored === "light" || stored === "dark") {
+        // Apply theme immediately to avoid flash
+        document.documentElement.classList.remove("light", "dark");
+        document.documentElement.classList.add(stored);
         return stored;
       }
-      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+
+      // Check system preference
+      const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const systemTheme = isDark ? "dark" : "light";
+
+      // Apply system theme immediately
+      document.documentElement.classList.remove("light", "dark");
+      document.documentElement.classList.add(systemTheme);
+      return systemTheme;
     } catch {
       return "light";
     }
@@ -62,15 +76,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       console.error("Error saving theme preference:", error);
     }
   };
-
-  // Set initial theme class
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const root = window.document.documentElement;
-      root.classList.remove("light", "dark");
-      root.classList.add(theme);
-    }
-  }, [theme]);
 
   // Sync with system preferences
   useEffect(() => {
