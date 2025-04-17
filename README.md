@@ -40,6 +40,11 @@ This application addresses the common problem of manual flashcard creation being
   * [Supabase](https://supabase.com/) (PostgreSQL Database, Authentication, BaaS)
 * **AI Integration:**
   * [Openrouter.ai](https://openrouter.ai/) (Access to various AI models)
+* **Testing:**
+  * [Vitest](https://vitest.dev/) (Unit and integration testing)
+  * [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/) (Component testing)
+  * [Playwright](https://playwright.dev/) (End-to-end testing)
+  * [Axe DevTools](https://www.deque.com/axe/) (Accessibility testing)
 * **Development Tools:**
   * [Node.js](https://nodejs.org/) (v22.14.0 recommended)
   * [ESLint](https://eslint.org/)
