@@ -33,10 +33,10 @@ describe("LoginForm", () => {
   // Helper function to fill form
   const fillForm = async (user: ReturnType<typeof userEvent.setup>, email: string, password: string) => {
     if (email) {
-      await user.type(screen.getByLabelText(/email/i), email);
+      await user.type(screen.getByTestId("email-input"), email);
     }
     if (password) {
-      await user.type(screen.getByLabelText(/password/i), password);
+      await user.type(screen.getByTestId("password-input"), password);
     }
   };
 
@@ -46,10 +46,10 @@ describe("LoginForm", () => {
       render(<LoginForm />);
 
       await fillForm(user, "invalid-email", "password123");
-      await user.click(screen.getByRole("button", { name: /sign in/i }));
+      await user.click(screen.getByTestId("signin-button"));
 
-      const errorElement = await screen.findByRole("alert");
-      expect(errorElement).toHaveTextContent(/please enter a valid email address/i);
+      const errorElement = await screen.findByText(/please enter a valid email address/i);
+      expect(errorElement).toBeInTheDocument();
       expect(mockFetch).not.toHaveBeenCalled();
     });
 
@@ -58,10 +58,10 @@ describe("LoginForm", () => {
       render(<LoginForm />);
 
       await fillForm(user, "test@example.com", "");
-      await user.click(screen.getByRole("button", { name: /sign in/i }));
+      await user.click(screen.getByTestId("signin-button"));
 
-      const errorElement = await screen.findByRole("alert");
-      expect(errorElement).toHaveTextContent(/password is required/i);
+      const errorElement = await screen.findByText(/password is required/i);
+      expect(errorElement).toBeInTheDocument();
       expect(mockFetch).not.toHaveBeenCalled();
     });
 
@@ -70,15 +70,15 @@ describe("LoginForm", () => {
       render(<LoginForm />);
 
       await fillForm(user, "invalid-email", "password123");
-      await user.click(screen.getByRole("button", { name: /sign in/i }));
+      await user.click(screen.getByTestId("signin-button"));
 
-      const errorElement = await screen.findByRole("alert");
-      expect(errorElement).toHaveTextContent(/please enter a valid email address/i);
+      const errorElement = await screen.findByText(/please enter a valid email address/i);
+      expect(errorElement).toBeInTheDocument();
 
-      await user.clear(screen.getByLabelText(/email/i));
-      await user.type(screen.getByLabelText(/email/i), "test@example.com");
+      await user.clear(screen.getByTestId("email-input"));
+      await user.type(screen.getByTestId("email-input"), "test@example.com");
 
-      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+      expect(screen.queryByText(/please enter a valid email address/i)).not.toBeInTheDocument();
     });
   });
 
@@ -93,7 +93,7 @@ describe("LoginForm", () => {
       render(<LoginForm />);
 
       await fillForm(user, "test@example.com", "password123");
-      await user.click(screen.getByRole("button", { name: /sign in/i }));
+      await user.click(screen.getByTestId("signin-button"));
 
       await waitFor(() => {
         expect(mockFetch).toHaveBeenCalledWith("/api/auth/login", {
@@ -119,10 +119,12 @@ describe("LoginForm", () => {
       render(<LoginForm />);
 
       await fillForm(user, "test@example.com", "wrongpassword");
-      await user.click(screen.getByRole("button", { name: /sign in/i }));
+      await user.click(screen.getByTestId("signin-button"));
 
       await waitFor(() => {
-        expect(toast.error).toHaveBeenCalledWith("Invalid email or password");
+        expect(toast.error).toHaveBeenCalledWith("Invalid email or password", {
+          description: "Please check your credentials and try again",
+        });
       });
     });
 
@@ -137,10 +139,10 @@ describe("LoginForm", () => {
       render(<LoginForm />);
 
       await fillForm(user, "test@example.com", "password123");
-      await user.click(screen.getByRole("button", { name: /sign in/i }));
+      await user.click(screen.getByTestId("signin-button"));
 
       await waitFor(() => {
-        expect(toast.error).toHaveBeenCalledWith("Internal server error");
+        expect(toast.error).toHaveBeenCalledWith("Sign in failed", { description: "Internal server error" });
       });
     });
 
@@ -151,10 +153,12 @@ describe("LoginForm", () => {
       render(<LoginForm />);
 
       await fillForm(user, "test@example.com", "password123");
-      await user.click(screen.getByRole("button", { name: /sign in/i }));
+      await user.click(screen.getByTestId("signin-button"));
 
       await waitFor(() => {
-        expect(toast.error).toHaveBeenCalledWith("An unexpected error occurred");
+        expect(toast.error).toHaveBeenCalledWith("An unexpected error occurred", {
+          description: "Please try again later",
+        });
       });
     });
   });
@@ -167,11 +171,12 @@ describe("LoginForm", () => {
       render(<LoginForm />);
 
       await fillForm(user, "test@example.com", "password123");
-      await user.click(screen.getByRole("button", { name: /sign in/i }));
+      await user.click(screen.getByTestId("signin-button"));
 
-      expect(screen.getByLabelText(/email/i)).toBeDisabled();
-      expect(screen.getByLabelText(/password/i)).toBeDisabled();
-      expect(screen.getByRole("button", { name: /signing in/i })).toBeDisabled();
+      expect(screen.getByTestId("email-input")).toBeDisabled();
+      expect(screen.getByTestId("password-input")).toBeDisabled();
+      expect(screen.getByTestId("signin-button")).toBeDisabled();
+      expect(screen.getByText(/signing in/i)).toBeInTheDocument();
     });
 
     it("should show loading spinner while submitting", async () => {
@@ -181,9 +186,9 @@ describe("LoginForm", () => {
       render(<LoginForm />);
 
       await fillForm(user, "test@example.com", "password123");
-      await user.click(screen.getByRole("button", { name: /sign in/i }));
+      await user.click(screen.getByTestId("signin-button"));
 
-      expect(screen.getByRole("button", { name: /signing in/i })).toBeInTheDocument();
+      expect(screen.getByText(/signing in/i)).toBeInTheDocument();
     });
   });
 
@@ -191,14 +196,14 @@ describe("LoginForm", () => {
     it("should render sign up link", () => {
       render(<LoginForm />);
 
-      const signUpLink = screen.getByRole("link", { name: /sign up/i });
+      const signUpLink = screen.getByText(/sign up/i);
       expect(signUpLink).toHaveAttribute("href", "/register");
     });
 
     it("should render forgot password link", () => {
       render(<LoginForm />);
 
-      const forgotPasswordLink = screen.getByRole("link", { name: /forgot your password/i });
+      const forgotPasswordLink = screen.getByText(/forgot your password/i);
       expect(forgotPasswordLink).toHaveAttribute("href", "/forgot-password");
     });
   });

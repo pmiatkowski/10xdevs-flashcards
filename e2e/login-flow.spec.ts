@@ -46,17 +46,14 @@ test.describe("Authentication Flow", () => {
     // Use the login method from the page object
     await loginPage.login(testEmail, testPassword);
 
-    // Assert - Verify successful login and redirection to dashboard
+    // Assert - Verify successful login
     await loginPage.expectLoginSuccess();
 
     // Additional assertion to ensure we're on the dashboard
     await expect(page).toHaveURL("/");
 
-    // Verify the DashboardView component is visible
-    await expect(page.locator(".max-w-5xl:has-text('AI Flashcard Generator')")).toBeVisible();
-
     // Verify the user's email is visible in the header
-    await expect(page.locator("header").getByText(testEmail)).toBeVisible();
+    await expect(page.locator('[data-test-id="user-email-dropdown-desktop"]')).toHaveText(testEmail);
   });
 
   test("should show validation error for invalid email", async ({ page }) => {

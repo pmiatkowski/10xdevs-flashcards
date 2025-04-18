@@ -45,7 +45,7 @@ export const HeaderAuthControls = ({ isAuthenticated, userEmail, showLabels = tr
         <div className="flex items-center">
           <a
             href="/login"
-            data-test-id="signin-link"
+            data-test-id="signin-link-mobile"
             className="p-2 text-foreground/80 hover:text-foreground transition-colors"
           >
             <User className="h-5 w-5" />
@@ -59,7 +59,7 @@ export const HeaderAuthControls = ({ isAuthenticated, userEmail, showLabels = tr
       <div className="flex items-center gap-4">
         <a
           href="/login"
-          data-test-id="signin-link"
+          data-test-id="signin-link-desktop"
           className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors"
         >
           Sign In
@@ -80,7 +80,7 @@ export const HeaderAuthControls = ({ isAuthenticated, userEmail, showLabels = tr
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
-            data-test-id="user-email-dropdown"
+            data-test-id={showLabels ? "user-email-dropdown-desktop" : "user-email-dropdown-mobile"}
             variant="ghost"
             size="sm"
             className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors"

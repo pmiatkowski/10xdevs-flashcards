@@ -12,7 +12,7 @@ export const LoginForm = memo(() => {
         label="Email"
         name="email"
         type="email"
-        data-test-id="email-input"
+        data-testid="email-input"
         value={data.email}
         onChange={handleChange}
         placeholder="Enter your email"
@@ -24,7 +24,7 @@ export const LoginForm = memo(() => {
         label="Password"
         name="password"
         type="password"
-        data-test-id="password-input"
+        data-testid="password-input"
         value={data.password}
         onChange={handleChange}
         placeholder="Enter your password"
@@ -33,7 +33,7 @@ export const LoginForm = memo(() => {
       />
 
       <div className="space-y-4">
-        <Button type="submit" className="w-full" disabled={isLoading} data-test-id="signin-button">
+        <Button type="submit" className="w-full" disabled={isLoading} data-testid="signin-button">
           {isLoading ? (
             <>
               <svg

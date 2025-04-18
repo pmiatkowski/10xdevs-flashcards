@@ -42,7 +42,7 @@ export const MobileNav = ({ isAuthenticated }: MobileNavProps) => {
               <SheetClose asChild>
                 <a
                   href="/login"
-                  data-test-id="signin-link"
+                  data-test-id="signin-link-mobile"
                   className="px-4 py-2 -mx-4 text-foreground/80 hover:text-foreground hover:bg-accent rounded-md transition-colors"
                 >
                   Sign In
@@ -51,7 +51,7 @@ export const MobileNav = ({ isAuthenticated }: MobileNavProps) => {
               <SheetClose asChild>
                 <a
                   href="/register"
-                  data-test-id="signup-link"
+                  data-test-id="signup-link-mobile"
                   className="px-4 py-2 -mx-4 text-foreground/80 hover:text-foreground hover:bg-accent rounded-md transition-colors"
                 >
                   Sign Up

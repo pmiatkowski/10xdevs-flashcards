@@ -13,19 +13,19 @@ export class HomePage extends BasePage {
 
   // Selectors as getters
   get loginButton() {
-    return this.page.locator('a[href="/login"]');
+    return this.page.locator('[data-test-id="signin-link-desktop"]').first();
   }
 
   get registerButton() {
-    return this.page.locator('a[href="/register"]');
+    return this.page.locator('[data-test-id="signup-link"]').first();
   }
 
   get userEmailDropdown() {
-    return this.page.getByRole("button").filter({ hasText: /^.+@.+\..+$/ });
+    return this.page.locator('[data-test-id="user-email-dropdown-desktop"]');
   }
 
   get heading() {
-    return this.page.getByRole("heading", { level: 1 });
+    return this.page.getByRole("heading", { level: 1 }).filter({ hasText: "AI Flashcard Generator" });
   }
 
   // Actions

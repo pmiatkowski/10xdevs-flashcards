@@ -1,27 +1,32 @@
+import type { ComponentPropsWithoutRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useId } from "react";
 
-interface FormFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
+type FormFieldProps = ComponentPropsWithoutRef<typeof Input> & {
   label: string;
   error?: string;
-}
+};
 
-export const FormField = ({ label, error, ...props }: FormFieldProps) => {
-  const id = useId();
-  const errorId = `${id}-error`;
+export const FormField = ({ label, error, id, name, ...props }: FormFieldProps) => {
+  const inputId = id || name;
 
   return (
     <div className="space-y-2">
-      <Label htmlFor={id}>{label}</Label>
+      <Label htmlFor={inputId}>{label}</Label>
       <div>
-        <Input id={id} aria-invalid={!!error} aria-describedby={error ? errorId : undefined} {...props} />
-        {error && (
-          <p id={errorId} className="text-sm text-destructive mt-1" role="alert">
-            {error}
-          </p>
-        )}
+        <Input
+          id={inputId}
+          name={name}
+          aria-invalid={!!error}
+          aria-describedby={error ? `${inputId}-error` : undefined}
+          {...props}
+        />
       </div>
+      {error && (
+        <p id={`${inputId}-error`} className="text-sm text-destructive" role="alert">
+          {error}
+        </p>
+      )}
     </div>
   );
 };
