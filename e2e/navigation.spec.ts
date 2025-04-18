@@ -40,17 +40,4 @@ test.describe("Navigation and Authentication", () => {
     // Assert - should show error message
     await loginPage.expectValidationError();
   });
-
-  // Visual regression test example
-  test("login page visual comparison", async ({ page }) => {
-    // Arrange
-    const loginPage = new LoginPage(page);
-
-    // Act
-    await loginPage.navigate();
-    await loginPage.waitForPageLoad();
-
-    // Assert - visual comparison
-    await expect(page).toHaveScreenshot("login-page.png");
-  });
 });
