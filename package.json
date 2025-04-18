@@ -3,7 +3,7 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
-    "dev": "supabase start && astro dev",
+    "dev": "astro dev",
     "dev:e2e": "npm run astro dev -- --mode test",
     "dev:ci": "astro dev",
     "build": "astro build",
