@@ -1,135 +1,36 @@
-import { useState } from "react";
-import { toast } from "sonner";
+import { memo } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { z } from "zod";
-import type { ApiErrorResponseDto } from "@/types";
+import { FormField } from "./FormField";
+import { useLoginForm } from "@/components/hooks/useLoginForm";
 
-const loginSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(1, "Password is required"),
-});
-
-export const LoginForm = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [data, setData] = useState({
-    email: "",
-    password: "",
-  });
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrors({});
-
-    try {
-      const validData = loginSchema.parse(data);
-      setIsLoading(true);
-
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(validData),
-      });
-
-      const responseData = await response.json();
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          toast.error("Invalid email or password");
-        } else {
-          const errorData = responseData as ApiErrorResponseDto;
-          toast.error(errorData.message || "An error occurred during sign in");
-        }
-        return;
-      }
-
-      // Redirect to home page on success (without trailing slash)
-      window.location.href = window.location.origin;
-    } catch (err) {
-      if (err instanceof z.ZodError) {
-        const fieldErrors: Record<string, string> = {};
-        err.errors.forEach((error) => {
-          if (error.path[0]) {
-            fieldErrors[error.path[0].toString()] = error.message;
-          }
-        });
-        setErrors(fieldErrors);
-      } else {
-        toast.error("An unexpected error occurred");
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    // Only clear error for the field being changed
-    if (errors[name]) {
-      setErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors[name];
-        return newErrors;
-      });
-    }
-  };
+export const LoginForm = memo(() => {
+  const { isLoading, data, errors, handleChange, handleSubmit } = useLoginForm();
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-      <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <div>
-          <Input
-            id="email"
-            name="email"
-            type="email"
-            data-test-id="email-input"
-            value={data.email}
-            onChange={handleChange}
-            placeholder="Enter your email"
-            disabled={isLoading}
-            aria-invalid={!!errors.email}
-            aria-describedby={errors.email ? "email-error" : undefined}
-          />
-          {errors.email && (
-            <p id="email-error" className="text-sm text-destructive mt-1" role="alert">
-              {errors.email}
-            </p>
-          )}
-        </div>
-      </div>
+      <FormField
+        label="Email"
+        name="email"
+        type="email"
+        data-test-id="email-input"
+        value={data.email}
+        onChange={handleChange}
+        placeholder="Enter your email"
+        disabled={isLoading}
+        error={errors.email}
+      />
 
-      <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
-        <div>
-          <Input
-            id="password"
-            name="password"
-            type="password"
-            data-test-id="password-input"
-            value={data.password}
-            onChange={handleChange}
-            placeholder="Enter your password"
-            disabled={isLoading}
-            aria-invalid={!!errors.password}
-            aria-describedby={errors.password ? "password-error" : undefined}
-          />
-          {errors.password && (
-            <p id="password-error" className="text-sm text-destructive mt-1" role="alert">
-              {errors.password}
-            </p>
-          )}
-        </div>
-      </div>
+      <FormField
+        label="Password"
+        name="password"
+        type="password"
+        data-test-id="password-input"
+        value={data.password}
+        onChange={handleChange}
+        placeholder="Enter your password"
+        disabled={isLoading}
+        error={errors.password}
+      />
 
       <div className="space-y-4">
         <Button type="submit" className="w-full" disabled={isLoading} data-test-id="signin-button">
@@ -171,4 +72,4 @@ export const LoginForm = () => {
       </div>
     </form>
   );
-};
+});

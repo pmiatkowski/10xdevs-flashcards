@@ -54,7 +54,7 @@ const user = Astro.locals.user;
       <main class="min-h-screen">
         <slot />
       </main>
-      <Toaster />
+      <Toaster client:only="react" />
     </ThemeProvider>
   </body>
 
