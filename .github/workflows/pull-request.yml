@@ -138,9 +138,18 @@ jobs:
           script: |
             const fs = require('fs');
 
-            // Read coverage summary
-            const coverageSummary = JSON.parse(fs.readFileSync('./coverage/coverage-summary.json', 'utf8'));
-            const coverage = coverageSummary.total.lines.pct;
+            let coverage = 'N/A';
+            // Check if coverage file exists before trying to read it
+            if (fs.existsSync('./coverage/coverage-summary.json')) {
+              try {
+                const coverageSummary = JSON.parse(fs.readFileSync('./coverage/coverage-summary.json', 'utf8'));
+                coverage = coverageSummary.total.lines.pct;
+              } catch (error) {
+                console.log('Error reading coverage file:', error);
+              }
+            } else {
+              console.log('Coverage file not found');
+            }
 
             // Generate comment
             const comment = `## Test Results Summary
