@@ -9,6 +9,12 @@ export default defineConfig({
   timeout: 30 * 1000,
   expect: {
     timeout: 5000,
+    // Add configuration for screenshots to ignore platform differences
+    toHaveScreenshot: {
+      maxDiffPixelRatio: 0.05,
+      // Use a common snapshot name regardless of platform
+      omitPlatformFromSnapshotPath: true,
+    },
   },
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
