@@ -14,7 +14,9 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
     build: {
-      exclude: ["**/*.test.ts", "**/*.spec.ts", "**/__tests__/**"],
+      rollupOptions: {
+        external: ["**/*.test.ts", "**/*.spec.ts", "**/__tests__/**"],
+      },
     },
   },
   adapter: node({
