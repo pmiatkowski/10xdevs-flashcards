@@ -18,6 +18,8 @@ pnpm-debug.log*
 .env.production
 .env.test
 
+coverage
+
 # macOS-specific files
 .DS_Store
 
