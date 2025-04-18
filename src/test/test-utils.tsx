@@ -1,12 +1,10 @@
 // src/test/test-utils.tsx
-import { render, RenderOptions } from "@testing-library/react";
-import { ReactElement, ReactNode } from "react";
+import { render, type RenderOptions } from "@testing-library/react";
+import type { ReactElement, ReactNode } from "react";
 import { ThemeProvider } from "../components/providers/ThemeProvider";
 
 // Create a custom wrapper that provides all the context providers needed for tests
-interface CustomRenderOptions extends Omit<RenderOptions, "wrapper"> {
-  // Add options for any additional providers or context needed
-}
+type CustomRenderOptions = Omit<RenderOptions, "wrapper">;
 
 interface WrapperProps {
   children: ReactNode;
@@ -14,11 +12,7 @@ interface WrapperProps {
 
 // Root wrapper with all providers
 export function AllTheProviders({ children }: WrapperProps) {
-  return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-      {children}
-    </ThemeProvider>
-  );
+  return <ThemeProvider>{children}</ThemeProvider>;
 }
 
 // Custom render function that includes providers

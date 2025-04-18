@@ -1,11 +1,11 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import { LoginForm } from '../components/auth/LoginForm';
+import Layout from "../layouts/Layout.astro";
+import { LoginForm } from "../components/auth/LoginForm";
 export const prerender = false;
 
 // If user is already logged in, redirect to home
 if (Astro.locals.session) {
-  return Astro.redirect('/', 307);
+  return Astro.redirect("/", 307);
 }
 ---
 

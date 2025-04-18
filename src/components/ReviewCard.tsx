@@ -1,3 +1,5 @@
+/* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
+/* eslint-disable jsx-a11y/no-noninteractive-tabindex */
 import { useId } from "react";
 import type { FlashcardDTO } from "../types";
 import { cn } from "@/lib/utils";

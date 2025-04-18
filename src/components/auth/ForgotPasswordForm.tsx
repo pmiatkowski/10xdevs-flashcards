@@ -74,7 +74,7 @@ export const ForgotPasswordForm = () => {
       <div className="space-y-4">
         <div>
           <p className="text-muted-foreground mb-4">
-            Enter your email address and we'll send you instructions to reset your password.
+            Enter your email address and we&apos;ll send you instructions to reset your password.
           </p>
         </div>
         <div className="space-y-2">

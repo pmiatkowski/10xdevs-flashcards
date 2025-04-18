@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-dynamic-delete */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // src/test/setup.ts
-import { expect, afterEach } from "vitest";
+import { expect, afterEach, vi } from "vitest";
 import * as matchers from "@testing-library/jest-dom/matchers";
 import { cleanup } from "@testing-library/react";
 

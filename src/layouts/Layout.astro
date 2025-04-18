@@ -25,7 +25,9 @@ const user = Astro.locals.user;
   </head>
   <body>
     <ThemeProvider client:only="react">
-      <header class="sticky top-0 z-50 w-full border-b border-border/40 bg-background backdrop-blur supports-[backdrop-filter]:bg-background/80">
+      <header
+        class="sticky top-0 z-50 w-full border-b border-border/40 bg-background backdrop-blur supports-[backdrop-filter]:bg-background/80"
+      >
         <div class="container flex h-14 items-center max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div class="flex items-center gap-2">
             <MobileNav client:idle isAuthenticated={!!session} />
@@ -34,20 +36,30 @@ const user = Astro.locals.user;
             </a>
           </div>
           <nav class="hidden md:flex flex-1 justify-end">
-            {session && (
-              <div class="flex gap-6 mr-6 items-center">
-                <a href="/" class="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors">
-                  Generate
-                </a>
-                <a href="/flashcards" class="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors">
-                  My Flashcards
-                </a>
-              </div>
-            )}
+            {
+              session && (
+                <div class="flex gap-6 mr-6 items-center">
+                  <a href="/" class="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors">
+                    Generate
+                  </a>
+                  <a
+                    href="/flashcards"
+                    class="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors"
+                  >
+                    My Flashcards
+                  </a>
+                </div>
+              )
+            }
             <HeaderAuthControls client:idle isAuthenticated={!!session} userEmail={user?.email ?? null} />
           </nav>
           <div class="md:hidden flex flex-1 justify-end">
-            <HeaderAuthControls client:idle isAuthenticated={!!session} userEmail={user?.email ?? null} showLabels={false} />
+            <HeaderAuthControls
+              client:idle
+              isAuthenticated={!!session}
+              userEmail={user?.email ?? null}
+              showLabels={false}
+            />
           </div>
         </div>
       </header>

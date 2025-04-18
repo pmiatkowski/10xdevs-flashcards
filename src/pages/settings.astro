@@ -1,12 +1,12 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import { AccountSettingsSection } from '../components/AccountSettingsSection';
-import { ThemeSettingsSection } from '../components/ThemeSettingsSection';
+import Layout from "../layouts/Layout.astro";
+import { AccountSettingsSection } from "../components/AccountSettingsSection";
+import { ThemeSettingsSection } from "../components/ThemeSettingsSection";
 
 // Redirect if not authenticated
 const session = Astro.locals.session;
 if (!session) {
-  return Astro.redirect('/login');
+  return Astro.redirect("/login");
 }
 
 const userEmail = session.user.email;

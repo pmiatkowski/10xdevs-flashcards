@@ -88,7 +88,7 @@ export const ResetPasswordForm = ({ token }: ResetPasswordFormProps) => {
     if (errors[name]) {
       setErrors((prev) => {
         const newErrors = { ...prev };
-        delete newErrors[name];
+        newErrors[name] = "";
         return newErrors;
       });
     }

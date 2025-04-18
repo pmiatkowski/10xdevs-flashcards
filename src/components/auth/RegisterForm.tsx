@@ -86,20 +86,20 @@ export const RegisterForm = () => {
     // Always clear the error for the field being changed
     setErrors((prev) => {
       const newErrors = { ...prev };
-      delete newErrors[name];
+      newErrors[name as keyof typeof newErrors] = "";
       return newErrors;
     });
 
     try {
       // Validate individual field
       if (name === "email") {
-        registerSchema.shape.email.parse(value);
+        registerSchema._def.schema.shape.email.parse(value);
       } else if (name === "password") {
-        registerSchema.shape.password.parse(value);
+        registerSchema._def.schema.shape.password.parse(value);
       } else if (name === "confirmPassword" && newData.password) {
         // Only validate confirmation if we have a password
         if (value === newData.password) {
-          registerSchema.shape.confirmPassword.parse(value);
+          registerSchema._def.schema.shape.confirmPassword.parse(value);
         } else {
           throw new z.ZodError([
             {

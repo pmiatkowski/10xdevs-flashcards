@@ -1,7 +1,7 @@
+/* eslint-disable @typescript-eslint/prefer-for-of */
 import { renderHook, act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { useReviewSession } from "../useReviewSession";
-import { StorageError, NoCardsAvailableError } from "@/lib/errors/reviewErrors";
 
 // Mock localStorage
 const mockLocalStorage = (() => {

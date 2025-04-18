@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 // e2e/login-flow.spec.ts
 import { test, expect } from "@playwright/test";
 import { HomePage } from "./pages/home-page";

@@ -1,11 +1,11 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import { FlashcardList } from '../components/FlashcardList';
+import Layout from "../layouts/Layout.astro";
+import { FlashcardList } from "../components/FlashcardList";
 export const prerender = false;
 
 // Redirect to login if user is not authenticated
 if (!Astro.locals.session) {
-  return Astro.redirect('/login', 307);
+  return Astro.redirect("/login", 307);
 }
 ---
 

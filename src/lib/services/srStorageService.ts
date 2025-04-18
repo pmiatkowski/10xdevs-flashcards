@@ -16,7 +16,7 @@ export class SRStorageService {
         return { cards: {} };
       }
       return JSON.parse(savedState);
-    } catch (_error) {
+    } catch {
       throw new StorageError("Failed to load SR state from local storage. Your progress may be reset.");
     }
   }
@@ -30,7 +30,7 @@ export class SRStorageService {
           lastSync: new Date().toISOString(),
         })
       );
-    } catch (_error) {
+    } catch {
       throw new StorageError("Failed to save SR state to local storage. Your progress may not be saved.");
     }
   }
@@ -39,7 +39,7 @@ export class SRStorageService {
     try {
       const state = this.loadState();
       return state.cards[cardId];
-    } catch (_error) {
+    } catch {
       throw new StorageError("Failed to load card state from local storage.");
     }
   }
@@ -49,7 +49,7 @@ export class SRStorageService {
       const state = this.loadState();
       state.cards[cardId] = cardState;
       this.saveState(state);
-    } catch (_error) {
+    } catch {
       throw new StorageError("Failed to save card state to local storage.");
     }
   }
@@ -57,7 +57,7 @@ export class SRStorageService {
   clearState(): void {
     try {
       localStorage.removeItem(SR_STATE_KEY);
-    } catch (_error) {
+    } catch {
       throw new StorageError("Failed to clear SR state from local storage.");
     }
   }

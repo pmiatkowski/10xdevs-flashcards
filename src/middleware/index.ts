@@ -1,8 +1,6 @@
 import { defineMiddleware } from "astro:middleware";
 import { createSupabaseServerInstance } from "../db/supabase.client";
 import { logger } from "../lib/utils";
-import type { MiddlewareResponseHandler } from "astro";
-import { sequence } from "astro:middleware";
 
 // Public paths - Auth API endpoints & Server-Rendered Astro Pages
 const PUBLIC_PATHS = [
