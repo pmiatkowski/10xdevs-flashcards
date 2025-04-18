@@ -74,7 +74,7 @@ jobs:
     environment: "Integration"
     env:
       CI: true
-      NODE_ENV: production
+      NODE_ENV: test
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
       PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
