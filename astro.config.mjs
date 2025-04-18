@@ -17,12 +17,12 @@ export default defineConfig({
       rollupOptions: {
         external: [
           "vitest",
-          "**/*.test.ts", 
-          "**/*.test.tsx", 
-          "**/*.spec.ts", 
-          "**/*.spec.tsx", 
+          "**/*.test.ts",
+          "**/*.test.tsx",
+          "**/*.spec.ts",
+          "**/*.spec.tsx",
           "**/__tests__/**",
-          "**/tests/**"
+          "**/tests/**",
         ],
       },
     },
