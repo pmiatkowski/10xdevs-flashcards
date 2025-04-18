@@ -13,7 +13,76 @@ runs:
     - name: Run unit tests with coverage
       if: inputs.coverage == 'true'
       shell: bash
-      run: npm run test:coverage
+      run: |
+        npm run test:coverage
+        # Ensure the coverage summary JSON exists for the status report
+        if [ ! -f "coverage/coverage-summary.json" ]; then
+          echo "Converting coverage.json to coverage-summary.json format"
+          node -e '
+            const fs = require("fs");
+            try {
+              const coverage = JSON.parse(fs.readFileSync("./coverage/coverage.json", "utf8"));
+
+              // Extract total coverage metrics
+              const total = {
+                lines: { total: 0, covered: 0, skipped: 0, pct: 0 },
+                statements: { total: 0, covered: 0, skipped: 0, pct: 0 },
+                functions: { total: 0, covered: 0, skipped: 0, pct: 0 },
+                branches: { total: 0, covered: 0, skipped: 0, pct: 0 }
+              };
+
+              // Process each file
+              Object.values(coverage).forEach(file => {
+                if (!file.s || !file.f || !file.b || typeof file.s !== "object") return;
+
+                // Count statements
+                const stmtTotal = Object.keys(file.s).length;
+                const stmtCovered = Object.values(file.s).filter(v => v > 0).length;
+
+                // Count functions
+                const fnTotal = Object.keys(file.f).length;
+                const fnCovered = Object.values(file.f).filter(v => v > 0).length;
+
+                // Count branches
+                const brTotal = Object.values(file.b).reduce((sum, arr) => sum + arr.length, 0);
+                const brCovered = Object.values(file.b).reduce((sum, arr) =>
+                  sum + arr.filter(v => v > 0).length, 0);
+
+                // Count lines (approximate from statements for simplicity)
+                const lineTotal = stmtTotal;
+                const lineCovered = stmtCovered;
+
+                // Add to totals
+                total.statements.total += stmtTotal;
+                total.statements.covered += stmtCovered;
+                total.functions.total += fnTotal;
+                total.functions.covered += fnCovered;
+                total.branches.total += brTotal;
+                total.branches.covered += brCovered;
+                total.lines.total += lineTotal;
+                total.lines.covered += lineCovered;
+              });
+
+              // Calculate percentages
+              ["lines", "statements", "functions", "branches"].forEach(key => {
+                total[key].pct = total[key].total === 0
+                  ? 0
+                  : Math.round((total[key].covered / total[key].total) * 100);
+              });
+
+              // Create the summary format
+              const summary = { total };
+              fs.writeFileSync("./coverage/coverage-summary.json", JSON.stringify(summary, null, 2));
+              console.log("Successfully created coverage-summary.json");
+            } catch (error) {
+              console.error("Error creating coverage summary:", error);
+              // Create a minimal file to prevent workflow failure
+              fs.writeFileSync("./coverage/coverage-summary.json", JSON.stringify({
+                total: { lines: { pct: 0 } }
+              }));
+            }
+          '
+        fi
 
     - name: Run unit tests
       if: inputs.coverage != 'true'
