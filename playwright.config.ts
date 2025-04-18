@@ -39,7 +39,7 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: "npm run dev",
+    command: process.env.CI ? "npm run dev:ci" : "npm run dev:e2e",
     url: process.env.PLAYWRIGHT_TEST_BASE_URL || "http://localhost:3001",
     reuseExistingServer: !process.env.CI,
   },

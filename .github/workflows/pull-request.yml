@@ -59,6 +59,7 @@ jobs:
     name: E2E Tests
     runs-on: ubuntu-latest
     env:
+      CI: true
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
       PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
