@@ -18,18 +18,22 @@ interface CreateServerOptions {
 }
 
 export function createSupabaseServerInstance(context: CreateServerOptions) {
-  return createServerClient<Database>(import.meta.env.SUPABASE_URL, import.meta.env.SUPABASE_KEY, {
-    cookies: {
-      get(name: string) {
-        const cookie = context.cookies.get(name);
-        return cookie?.value;
+  return createServerClient<Database>(
+    import.meta.env.PUBLIC_SUPABASE_URL || import.meta.env.SUPABASE_URL,
+    import.meta.env.PUBLIC_SUPABASE_KEY || import.meta.env.SUPABASE_KEY,
+    {
+      cookies: {
+        get(name: string) {
+          const cookie = context.cookies.get(name);
+          return cookie?.value;
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          context.cookies.set(name, value, options);
+        },
+        remove(name: string, options: CookieOptions) {
+          context.cookies.delete(name, options);
+        },
       },
-      set(name: string, value: string, options: CookieOptions) {
-        context.cookies.set(name, value, options);
-      },
-      remove(name: string, options: CookieOptions) {
-        context.cookies.delete(name, options);
-      },
-    },
-  });
+    }
+  );
 }

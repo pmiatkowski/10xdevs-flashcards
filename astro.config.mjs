@@ -4,17 +4,49 @@ import { defineConfig } from "astro/config";
 import react from "@astrojs/react";
 import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
-import node from "@astrojs/node";
+import cloudflare from "@astrojs/cloudflare";
 
 // https://astro.build/config
 export default defineConfig({
   output: "server",
-  integrations: [react(), sitemap()],
+  experimental: {
+    session: true, // Enable experimental sessions
+  },
+  integrations: [
+    react({
+      include: ["**/*.tsx", "**/*.jsx"],
+      ssr: false, // Disable SSR for React components when deploying to Cloudflare
+    }),
+    sitemap(),
+  ],
   server: { port: 3001 },
   vite: {
+    resolve: {
+      alias: import.meta.env.PROD && {
+        "react-dom/server": "react-dom/server.edge",
+      },
+    },
     plugins: [tailwindcss()],
+    build: {
+      rollupOptions: {
+        external: [
+          "vitest",
+          "**/*.test.ts",
+          "**/*.test.tsx",
+          "**/*.spec.ts",
+          "**/*.spec.tsx",
+          "**/__tests__/**",
+          "**/tests/**",
+        ],
+      },
+    },
   },
-  adapter: node({
-    mode: "standalone",
+  adapter: cloudflare({
+    runtime: {
+      mode: "off",
+      type: "pages",
+    },
+    imageService: "compile",
+    functionPerRoute: true,
   }),
 });

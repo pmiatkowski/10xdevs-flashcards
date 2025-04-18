@@ -29,7 +29,7 @@ export const useLoginForm = () => {
     if (errors[name]) {
       setErrors((prev) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { [name]: omitted, ...rest } = prev;
+        const { [name]: _, ...rest } = prev;
         return rest;
       });
     }
@@ -55,14 +55,14 @@ export const useLoginForm = () => {
 
       if (!response.ok) {
         if (response.status === 401) {
-          toast.error("Invalid email or password", {
-            description: "Please check your credentials and try again",
+          toast.error("Authentication failed", {
+            description: `Invalid email or password. Please check your credentials and try again. URL: ${response.url}`,
           });
           return;
         } else {
           const errorData = responseData as ApiErrorResponseDto;
           toast.error("Sign in failed", {
-            description: errorData.message || "An error occurred during sign in",
+            description: `Error: ${errorData.message}. Status: ${response.status}. URL: ${response.url}`,
           });
           return;
         }
@@ -83,9 +83,13 @@ export const useLoginForm = () => {
           }
         });
         setErrors(fieldErrors);
+      } else if (err instanceof Error) {
+        toast.error("Connection error", {
+          description: `Failed to connect to authentication service. Error: ${err.message}`,
+        });
       } else {
         toast.error("An unexpected error occurred", {
-          description: "Please try again later",
+          description: "Please try again later. If the problem persists, contact support.",
         });
       }
     } finally {

@@ -1,29 +1,124 @@
 name: 'Run Unit Tests'
-description: 'Runs unit tests with coverage reporting'
+description: 'Runs unit tests with optional coverage reporting'
 
 inputs:
   coverage:
-    description: 'Whether to run tests with coverage'
+    description: 'Whether to collect coverage information'
     required: false
     default: 'false'
 
 runs:
-  using: "composite"
+  using: 'composite'
   steps:
-    - name: Run unit tests with coverage
-      if: inputs.coverage == 'true'
-      shell: bash
-      run: npm run test:coverage
-
     - name: Run unit tests
-      if: inputs.coverage != 'true'
       shell: bash
-      run: npm run test
+      run: |
+        if [ "${{ inputs.coverage }}" = "true" ]; then
+          npm run test:coverage
+          # Ensure the coverage summary JSON exists for the status report
+          echo "Creating coverage-summary.json format from Vitest output"
+          node -e '
+            const fs = require("fs");
+            try {
+              // For Vitest v8 coverage, the file is usually coverage-final.json
+              let coverageData;
+              if (fs.existsSync("./coverage/coverage-final.json")) {
+                coverageData = JSON.parse(fs.readFileSync("./coverage/coverage-final.json", "utf8"));
+              } else if (fs.existsSync("./coverage/coverage.json")) {
+                coverageData = JSON.parse(fs.readFileSync("./coverage/coverage.json", "utf8"));
+              } else {
+                throw new Error("No coverage data found");
+              }
 
-    - name: Upload coverage reports
+              // Initialize summary structure with totals
+              const summary = {
+                total: {
+                  lines: { total: 0, covered: 0, skipped: 0, pct: 0 },
+                  statements: { total: 0, covered: 0, skipped: 0, pct: 0 },
+                  functions: { total: 0, covered: 0, skipped: 0, pct: 0 },
+                  branches: { total: 0, covered: 0, skipped: 0, pct: 0 }
+                }
+              };
+
+              // Process each file in the coverage report
+              Object.entries(coverageData).forEach(([filePath, fileData]) => {
+                if (!fileData.statementMap || !fileData.fnMap || !fileData.branchMap) return;
+
+                // Count statements
+                const stmtTotal = Object.keys(fileData.statementMap).length;
+                const stmtCovered = Object.entries(fileData.s).filter(([_, v]) => v > 0).length;
+
+                // Count functions
+                const fnTotal = Object.keys(fileData.fnMap).length;
+                const fnCovered = Object.entries(fileData.f).filter(([_, v]) => v > 0).length;
+
+                // Count branches
+                const brTotal = Object.keys(fileData.branchMap).length * 2; // Typical branch has 2 paths
+                const brCovered = Object.entries(fileData.b).reduce((acc, [_, counts]) => {
+                  return acc + counts.filter(c => c > 0).length;
+                }, 0);
+
+                // Count lines (using statementMap as approximation)
+                const lineMap = {};
+                Object.values(fileData.statementMap).forEach(stmt => {
+                  if (stmt.start && stmt.end) {
+                    for (let i = stmt.start.line; i <= stmt.end.line; i++) {
+                      lineMap[i] = true;
+                    }
+                  }
+                });
+                const lineTotal = Object.keys(lineMap).length;
+
+                // Create a covered lines map based on covered statements
+                const coveredLineMap = {};
+                Object.entries(fileData.s).forEach(([stmtId, count]) => {
+                  if (count > 0 && fileData.statementMap[stmtId]) {
+                    const stmt = fileData.statementMap[stmtId];
+                    if (stmt.start && stmt.end) {
+                      for (let i = stmt.start.line; i <= stmt.end.line; i++) {
+                        coveredLineMap[i] = true;
+                      }
+                    }
+                  }
+                });
+                const lineCovered = Object.keys(coveredLineMap).length;
+
+                // Update totals
+                summary.total.statements.total += stmtTotal;
+                summary.total.statements.covered += stmtCovered;
+                summary.total.functions.total += fnTotal;
+                summary.total.functions.covered += fnCovered;
+                summary.total.branches.total += brTotal;
+                summary.total.branches.covered += brCovered;
+                summary.total.lines.total += lineTotal;
+                summary.total.lines.covered += lineCovered;
+              });
+
+              // Calculate percentages
+              ["lines", "statements", "functions", "branches"].forEach(key => {
+                const metrics = summary.total[key];
+                metrics.pct = metrics.total === 0 ? 0 : Math.round((metrics.covered / metrics.total) * 100);
+              });
+
+              // Write the summary file
+              fs.writeFileSync("./coverage/coverage-summary.json", JSON.stringify(summary, null, 2));
+              console.log("Successfully created coverage-summary.json with line coverage: " + summary.total.lines.pct + "%");
+            } catch (error) {
+              console.error("Error creating coverage summary:", error);
+              // Create a minimal file with actual 0% to prevent workflow failure
+              fs.writeFileSync("./coverage/coverage-summary.json", JSON.stringify({
+                total: { lines: { pct: 0 } }
+              }));
+            }
+          '
+        else
+          npm run test
+        fi
+
+    - name: Upload coverage report
       if: inputs.coverage == 'true'
       uses: actions/upload-artifact@v4
       with:
         name: unit-test-coverage
         path: coverage/
-        retention-days: 1
+        retention-days: 14
