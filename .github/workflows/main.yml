@@ -40,7 +40,7 @@ jobs:
     needs: lint
     name: E2E Tests
     runs-on: ubuntu-latest
-    environment: "production"
+    environment: "Integration"
     env:
       CI: true
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -71,9 +71,10 @@ jobs:
     needs: [unit-test, e2e-test]
     name: Build
     runs-on: ubuntu-latest
-    environment: "production"
+    environment: "Integration"
     env:
-      NODE_ENV: production
+      CI: true
+      NODE_ENV: test
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
       PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
