@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { User } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,9 +13,10 @@ import {
 interface HeaderAuthControlsProps {
   isAuthenticated: boolean;
   userEmail: string | null;
+  showLabels?: boolean;
 }
 
-export const HeaderAuthControls = ({ isAuthenticated, userEmail }: HeaderAuthControlsProps) => {
+export const HeaderAuthControls = ({ isAuthenticated, userEmail, showLabels = true }: HeaderAuthControlsProps) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLogout = async () => {
@@ -30,7 +32,6 @@ export const HeaderAuthControls = ({ isAuthenticated, userEmail }: HeaderAuthCon
         throw new Error("Logout failed");
       }
 
-      // Redirect to login page
       window.location.href = "/login";
     } catch {
       toast.error("Failed to sign out");
@@ -39,6 +40,21 @@ export const HeaderAuthControls = ({ isAuthenticated, userEmail }: HeaderAuthCon
   };
 
   if (!isAuthenticated) {
+    if (!showLabels) {
+      return (
+        <div className="flex items-center">
+          <a
+            href="/login"
+            data-test-id="signin-link"
+            className="p-2 text-foreground/80 hover:text-foreground transition-colors"
+          >
+            <User className="h-5 w-5" />
+            <span className="sr-only">Sign In</span>
+          </a>
+        </div>
+      );
+    }
+
     return (
       <div className="flex items-center gap-4">
         <a
@@ -69,7 +85,8 @@ export const HeaderAuthControls = ({ isAuthenticated, userEmail }: HeaderAuthCon
             size="sm"
             className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors"
           >
-            {userEmail}
+            {showLabels ? userEmail : <User className="h-5 w-5" />}
+            {!showLabels && <span className="sr-only">{userEmail}</span>}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
