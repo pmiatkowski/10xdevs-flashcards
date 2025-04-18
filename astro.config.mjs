@@ -13,6 +13,9 @@ export default defineConfig({
   server: { port: 3001 },
   vite: {
     plugins: [tailwindcss()],
+    build: {
+      exclude: ["**/*.test.ts", "**/*.spec.ts", "**/__tests__/**"],
+    },
   },
   adapter: node({
     mode: "standalone",
