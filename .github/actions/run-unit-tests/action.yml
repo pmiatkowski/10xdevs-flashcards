@@ -1,0 +1,29 @@
+name: 'Run Unit Tests'
+description: 'Runs unit tests with coverage reporting'
+
+inputs:
+  coverage:
+    description: 'Whether to run tests with coverage'
+    required: false
+    default: 'false'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Run unit tests with coverage
+      if: inputs.coverage == 'true'
+      shell: bash
+      run: npm run test:coverage
+
+    - name: Run unit tests
+      if: inputs.coverage != 'true'
+      shell: bash
+      run: npm run test
+
+    - name: Upload coverage reports
+      if: inputs.coverage == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: unit-test-coverage
+        path: coverage/
+        retention-days: 1

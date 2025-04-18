@@ -6,12 +6,55 @@ on:
   workflow_dispatch:
 
 jobs:
-  test-and-build:
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: ./.github/actions/setup-node
+
+      - name: Run linting
+        run: npm run lint
+
+  unit-test:
+    needs: lint
+    name: Unit Tests
+    runs-on: ubuntu-latest
     env:
+      NODE_ENV: test
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+      PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      OPENROUTER_MODEL: ${{ secrets.OPENROUTER_MODEL }}
+      OPENROUTER_HTTP_REFERER: ${{ secrets.OPENROUTER_HTTP_REFERER }}
+      OPENROUTER_APP_TITLE: ${{ secrets.OPENROUTER_APP_TITLE }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: ./.github/actions/setup-node
+
+      - name: Run unit tests
+        uses: ./.github/actions/run-unit-tests
+        with:
+          coverage: 'true'
+
+  e2e-test:
+    needs: lint
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    environment: "Integration"
+    env:
+      CI: true
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+      PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       OPENROUTER_MODEL: ${{ secrets.OPENROUTER_MODEL }}
       OPENROUTER_HTTP_REFERER: ${{ secrets.OPENROUTER_HTTP_REFERER }}
@@ -20,22 +63,45 @@ jobs:
       E2E_USERNAME: ${{ secrets.E2E_USERNAME }}
       E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
       PLAYWRIGHT_TEST_BASE_URL: ${{ secrets.PLAYWRIGHT_TEST_BASE_URL }}
-      NODE_ENV: test
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: ./.github/actions/setup-node
+
+      - name: Run E2E tests
+        uses: ./.github/actions/run-e2e-tests
         with:
-          node-version-file: '.nvmrc'
-          cache: 'npm'
+          update_snapshots: ${{ github.event_name == 'workflow_dispatch' }}
 
-      - name: Install dependencies
-        run: npm ci
+  build:
+    needs: [unit-test, e2e-test]
+    name: Build
+    runs-on: ubuntu-latest
+    env:
+      NODE_ENV: production
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+      PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      OPENROUTER_MODEL: ${{ secrets.OPENROUTER_MODEL }}
+      OPENROUTER_HTTP_REFERER: ${{ secrets.OPENROUTER_HTTP_REFERER }}
+      OPENROUTER_APP_TITLE: ${{ secrets.OPENROUTER_APP_TITLE }}
 
-      - name: Run unit tests
-        run: npm run test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: ./.github/actions/setup-node
 
       - name: Build project
         run: npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: dist/
+          retention-days: 1

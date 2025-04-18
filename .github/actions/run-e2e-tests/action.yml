@@ -1,0 +1,41 @@
+name: 'Run E2E Tests'
+description: 'Sets up and runs Playwright E2E tests'
+
+inputs:
+  update_snapshots:
+    description: 'Whether to update snapshots'
+    required: false
+    default: 'false'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Playwright browsers
+      shell: bash
+      run: npx playwright install chromium
+
+    - name: Build project
+      shell: bash
+      run: npm run build
+
+    - name: Run E2E tests
+      shell: bash
+      run: npm run test:e2e
+      env:
+        UPDATE_SNAPSHOTS: ${{ inputs.update_snapshots }}
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: playwright-report
+        path: playwright-report/
+        retention-days: 1
+
+    - name: Upload test snapshots
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-snapshots
+        path: e2e/**/*-snapshots/
+        retention-days: 1

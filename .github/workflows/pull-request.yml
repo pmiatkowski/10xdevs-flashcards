@@ -13,13 +13,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
+        uses: ./.github/actions/setup-node
 
       - name: Run linting
         run: npm run lint
@@ -30,28 +24,25 @@ jobs:
     runs-on: ubuntu-latest
     env:
       NODE_ENV: test
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+      PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      OPENROUTER_MODEL: ${{ secrets.OPENROUTER_MODEL }}
+      OPENROUTER_HTTP_REFERER: ${{ secrets.OPENROUTER_HTTP_REFERER }}
+      OPENROUTER_APP_TITLE: ${{ secrets.OPENROUTER_APP_TITLE }}
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: ./.github/actions/setup-node
+
+      - name: Run unit tests
+        uses: ./.github/actions/run-unit-tests
         with:
-          node-version-file: '.nvmrc'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run unit tests with coverage
-        run: npm run test:coverage
-
-      - name: Upload coverage reports
-        uses: actions/upload-artifact@v4
-        with:
-          name: unit-test-coverage
-          path: coverage/
-          retention-days: 1
+          coverage: 'true'
 
   e2e-test:
     environment: "Integration"
@@ -77,41 +68,12 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Install Playwright browsers
-        run: npx playwright install chromium
-
-      - name: Build project
-        run: npm run build
+        uses: ./.github/actions/setup-node
 
       - name: Run E2E tests
-        run: npm run test:e2e
-        env:
-          # Add environment variable to update snapshots if needed
-          UPDATE_SNAPSHOTS: ${{ github.event_name == 'workflow_dispatch' }}
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
+        uses: ./.github/actions/run-e2e-tests
         with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 1
-
-      - name: Upload test snapshots
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-snapshots
-          path: e2e/**/*-snapshots/
-          retention-days: 1
+          update_snapshots: ${{ github.event_name == 'workflow_dispatch' }}
 
   status-comment:
     needs: [unit-test, e2e-test]
