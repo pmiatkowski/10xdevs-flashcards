@@ -15,7 +15,15 @@ export default defineConfig({
     plugins: [tailwindcss()],
     build: {
       rollupOptions: {
-        external: ["**/*.test.ts", "**/*.spec.ts", "**/__tests__/**"],
+        external: [
+          "vitest",
+          "**/*.test.ts", 
+          "**/*.test.tsx", 
+          "**/*.spec.ts", 
+          "**/*.spec.tsx", 
+          "**/__tests__/**",
+          "**/tests/**"
+        ],
       },
     },
   },
