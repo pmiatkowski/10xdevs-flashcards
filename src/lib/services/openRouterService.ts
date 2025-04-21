@@ -1,4 +1,5 @@
-import { createHash } from "node:crypto";
+// Replace Node.js crypto import with a utility function using Web Crypto API
+// import { createHash } from "node:crypto";
 import type { SupabaseClient } from "../../db/supabase.client";
 import type { AICandidateDTO } from "../../types";
 import type { Database } from "../../db/database.types";
@@ -39,12 +40,25 @@ interface OpenRouterErrorResponse {
 
 export class OpenRouterService {
   /**
-   * Calculates MD5 hash of the input text
+   * Calculates MD5 hash of the input text using Web Crypto API
    * @param text Text to hash
    * @returns MD5 hash in hexadecimal format
-   */ private _calculateMd5(text: string): string {
-    return createHash("md5").update(text).digest("hex");
+   */
+  private async _calculateMd5(text: string): Promise<string> {
+    // Convert the string to an array buffer
+    const encoder = new TextEncoder();
+    const data = encoder.encode(text);
+
+    // Use the SubtleCrypto interface to create a hash
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+
+    // Convert the buffer to a hex string
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+
+    return hashHex;
   }
+
   /**
    * Calls the OpenRouter API with proper error handling
    * @param messages Array of messages to send to the API
@@ -220,14 +234,14 @@ export class OpenRouterService {
     userId: string,
     supabase: SupabaseClient
   ): Promise<AICandidateDTO[]> {
-    const apiKey = import.meta.env.OPENROUTER_API_KEY;
-    const model = import.meta.env.OPENROUTER_MODEL;
+    const apiKey = import.meta.env.PUBLIC_OPENROUTER_API_KEY || import.meta.env.OPENROUTER_API_KEY;
+    const model = import.meta.env.PUBLIC_OPENROUTER_MODEL || import.meta.env.OPENROUTER_MODEL;
 
     if (!apiKey || !model) {
       throw new ConfigurationError("OpenRouter API key or model not configured");
     }
 
-    const sourceTextHash = this._calculateMd5(sourceText);
+    const sourceTextHash = await this._calculateMd5(sourceText);
     const jsonSchema = getJsonSchemaForFlashcards();
 
     const messages = [

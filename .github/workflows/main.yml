@@ -38,7 +38,7 @@ jobs:
     needs: lint
     name: E2E Tests
     runs-on: ubuntu-latest
-    environment: "Integration"
+    environment: Integration
     env:
       CI: true
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -67,7 +67,7 @@ jobs:
     needs: [unit-test, e2e-test]
     name: Build
     runs-on: ubuntu-latest
-    environment: "Integration"
+    environment: Integration
     env:
       CI: true
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
