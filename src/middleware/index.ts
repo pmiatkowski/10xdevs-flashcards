@@ -1,6 +1,7 @@
 import { defineMiddleware } from "astro:middleware";
 import { createSupabaseServerInstance } from "../db/supabase.client";
 import { logger } from "../lib/utils";
+import { isFeatureEnabled } from "../lib/featureFlags";
 
 // Public paths - Auth API endpoints & Server-Rendered Astro Pages
 const PUBLIC_PATHS = [
@@ -20,8 +21,11 @@ const PUBLIC_PATHS = [
   "/api/ai/generate",
 ];
 
-// Protected routes that require authentication
-const PROTECTED_ROUTES = ["/flashcards", "/settings"];
+// Protected routes that require authentication and their corresponding feature flags
+const PROTECTED_ROUTES = {
+  "/flashcards": null, // null means no feature flag required
+  "/settings": "settings", // requires "settings" feature flag
+} as const;
 
 export const onRequest = defineMiddleware(async ({ locals, cookies, url, request, redirect }, next) => {
   try {
@@ -55,9 +59,18 @@ export const onRequest = defineMiddleware(async ({ locals, cookies, url, request
       return redirect("/");
     }
 
+    // Check if route is protected and needs feature flag
+    const requiredFeatureFlag = PROTECTED_ROUTES[url.pathname as keyof typeof PROTECTED_ROUTES];
+
     // Redirect unauthenticated users from protected routes
-    if (!user && PROTECTED_ROUTES.includes(url.pathname)) {
+    if (!user && url.pathname in PROTECTED_ROUTES) {
       return redirect("/login");
+    }
+
+    // Check feature flag if route requires it
+    if (requiredFeatureFlag && !isFeatureEnabled(requiredFeatureFlag)) {
+      logger.info(`Feature ${requiredFeatureFlag} is disabled for route ${url.pathname}`);
+      return redirect("/");
     }
 
     return next();
@@ -66,7 +79,7 @@ export const onRequest = defineMiddleware(async ({ locals, cookies, url, request
     locals.session = null;
     locals.user = null;
     // Only redirect to login if accessing a protected route
-    if (PROTECTED_ROUTES.includes(url.pathname)) {
+    if (url.pathname in PROTECTED_ROUTES) {
       return redirect("/login");
     }
     return next();

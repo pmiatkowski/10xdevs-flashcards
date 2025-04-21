@@ -2,6 +2,12 @@
 import Layout from "../layouts/Layout.astro";
 import { AccountSettingsSection } from "../components/AccountSettingsSection";
 import { ThemeSettingsSection } from "../components/ThemeSettingsSection";
+import { isFeatureEnabled } from "../lib/featureFlags";
+
+// Check feature flag first
+if (!isFeatureEnabled("settings")) {
+  return Astro.redirect("/");
+}
 
 // Redirect if not authenticated
 const session = Astro.locals.session;

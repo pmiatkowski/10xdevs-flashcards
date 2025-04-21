@@ -37,12 +37,6 @@ jobs:
     environment: production
     env:
       CI: true
-      PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-      PUBLIC_SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-      PUBLIC_OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-      PUBLIC_OPENROUTER_MODEL: ${{ secrets.OPENROUTER_MODEL }}
-      PUBLIC_OPENROUTER_HTTP_REFERER: ${{ secrets.OPENROUTER_HTTP_REFERER }}
-      PUBLIC_OPENROUTER_APP_TITLE: ${{ secrets.OPENROUTER_APP_TITLE }}
 
     steps:
       - uses: actions/checkout@v4

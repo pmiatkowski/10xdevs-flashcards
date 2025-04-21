@@ -2,6 +2,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { User } from "lucide-react";
+import { isFeatureEnabled } from "@/lib/featureFlags";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -90,10 +91,14 @@ export const HeaderAuthControls = ({ isAuthenticated, userEmail, showLabels = tr
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem asChild>
-            <a href="/settings">Settings</a>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
+          {isFeatureEnabled("settings") && (
+            <>
+              <DropdownMenuItem asChild>
+                <a href="/settings">Settings</a>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          )}
           <DropdownMenuItem disabled={isLoading} onClick={handleLogout}>
             {isLoading ? "Signing out..." : "Sign Out"}
           </DropdownMenuItem>
