@@ -132,15 +132,12 @@ Follow these steps to set up and run the project locally:
 
 ## Available Scripts
 
-The following scripts are available via npm:
+The most common scripts are available via npm:
 
 - `npm run dev`: Starts the Astro development server with hot reloading.
 - `npm run build`: Builds the application for production.
-- `npm run preview`: Starts a local server to preview the production build.
-- `npm run astro`: Accesses the Astro CLI for various commands.
-- `npm run lint`: Lints the codebase using ESLint.
-- `npm run lint:fix`: Lints the codebase and attempts to fix issues automatically.
-- `npm run format`: Formats the codebase using Prettier.
+- `npm run test`: Runs unit tests once using Vitest.
+- `npm run test:e2e`: Runs end-to-end tests using Playwright.
 
 ## Project Scope
 

@@ -40,11 +40,11 @@ interface OpenRouterErrorResponse {
 
 export class OpenRouterService {
   /**
-   * Calculates MD5 hash of the input text using Web Crypto API
+   * Calculates hash of the input text using Web Crypto API
    * @param text Text to hash
-   * @returns MD5 hash in hexadecimal format
+   * @returns Hash in hexadecimal format
    */
-  private async _calculateMd5(text: string): Promise<string> {
+  public async calculateHash(text: string): Promise<string> {
     // Convert the string to an array buffer
     const encoder = new TextEncoder();
     const data = encoder.encode(text);
@@ -223,6 +223,61 @@ export class OpenRouterService {
   }
 
   /**
+   * Generates AI candidates without saving to database (for guests)
+   * @param sourceText Source text to generate flashcards from
+   * @returns Array of generated candidates without IDs
+   */
+  public async generateAICandidatesOnly(sourceText: string): Promise<{ front_text: string; back_text: string }[]> {
+    const apiKey = import.meta.env.PUBLIC_OPENROUTER_API_KEY || import.meta.env.OPENROUTER_API_KEY;
+    const model = import.meta.env.PUBLIC_OPENROUTER_MODEL || import.meta.env.OPENROUTER_MODEL;
+
+    if (!apiKey || !model) {
+      throw new ConfigurationError("OpenRouter API key or model not configured");
+    }
+
+    const jsonSchema = getJsonSchemaForFlashcards();
+
+    const messages = [
+      {
+        role: "system",
+        content: `You are a flashcard generation assistant. Create flashcards based on the provided text.
+        Each flashcard should have a front (question/prompt) and back (answer/explanation).
+        The front should be clear and concise, maximum 200 characters.
+        The back should be detailed but focused, maximum 500 characters.
+        Generate exactly 5 flashcards covering the most important concepts.
+
+        You must respond with valid JSON in exactly this format and nothing else:
+        [
+          {
+            "front": "Front text of the flashcard, maximum 200 characters",
+            "back": "Back text of the flashcard, maximum 500 characters"
+          },
+          ...
+        ]`,
+      },
+      {
+        role: "user",
+        content: sourceText,
+      },
+    ];
+
+    const rawCandidates = await this._callOpenRouterAPI(messages, jsonSchema, model, apiKey);
+    const result = FlashcardArraySchema.safeParse(rawCandidates);
+
+    if (!result.success) {
+      throw new ResponseValidationError("AI response validation failed", {
+        validation: result.error.errors.map((e) => e.message),
+      });
+    }
+
+    // Return candidates without saving to database
+    return result.data.map((card) => ({
+      front_text: card.front.trim(),
+      back_text: card.back.trim(),
+    }));
+  }
+
+  /**
    * Main method to generate flashcard candidates
    * @param sourceText Source text to generate flashcards from
    * @param userId User ID
@@ -241,7 +296,7 @@ export class OpenRouterService {
       throw new ConfigurationError("OpenRouter API key or model not configured");
     }
 
-    const sourceTextHash = await this._calculateMd5(sourceText);
+    const sourceTextHash = await this.calculateHash(sourceText);
     const jsonSchema = getJsonSchemaForFlashcards();
 
     const messages = [

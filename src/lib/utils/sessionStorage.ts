@@ -1,47 +1,62 @@
 import type { AICandidateDTO } from "../../types";
 
-const STORAGE_KEYS = {
-  SOURCE_TEXT: "fiszki:guest:sourceText",
-  CANDIDATES: "fiszki:guest:candidates",
-} as const;
-
-export interface GuestStorage {
+interface GuestState {
   sourceText?: string;
+  sourceHash?: string;
   candidates?: AICandidateDTO[];
 }
 
-/**
- * Saves guest state to sessionStorage
- */
-export function saveGuestState(state: GuestStorage): void {
-  if (state.sourceText) {
-    sessionStorage.setItem(STORAGE_KEYS.SOURCE_TEXT, state.sourceText);
-  }
-  if (state.candidates) {
-    sessionStorage.setItem(STORAGE_KEYS.CANDIDATES, JSON.stringify(state.candidates));
-  }
-}
+const GUEST_STATE_KEY = "ai-flashcards-guest-state";
 
 /**
- * Loads guest state from sessionStorage
+ * Loads the guest state from sessionStorage
+ * @returns The guest state or an empty object if no state exists
  */
-export function loadGuestState(): GuestStorage {
+export function loadGuestState(): GuestState {
+  if (typeof window === "undefined") {
+    return {};
+  }
+
   try {
-    const sourceText = sessionStorage.getItem(STORAGE_KEYS.SOURCE_TEXT) || undefined;
-    const candidatesJson = sessionStorage.getItem(STORAGE_KEYS.CANDIDATES);
-    const candidates = candidatesJson ? JSON.parse(candidatesJson) : undefined;
+    const storedState = sessionStorage.getItem(GUEST_STATE_KEY);
+    if (!storedState) {
+      return {};
+    }
 
-    return { sourceText, candidates };
+    return JSON.parse(storedState) as GuestState;
   } catch (error) {
-    console.error("Failed to load guest state:", error);
+    console.error("Failed to load guest state from sessionStorage:", error);
     return {};
   }
 }
 
 /**
- * Clears guest state from sessionStorage
+ * Saves the guest state to sessionStorage
+ * @param state The state to save
+ */
+export function saveGuestState(state: GuestState): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    sessionStorage.setItem(GUEST_STATE_KEY, JSON.stringify(state));
+  } catch (error) {
+    console.error("Failed to save guest state to sessionStorage:", error);
+  }
+}
+
+/**
+ * Clears the guest state from sessionStorage
  */
 export function clearGuestState(): void {
-  sessionStorage.removeItem(STORAGE_KEYS.SOURCE_TEXT);
-  sessionStorage.removeItem(STORAGE_KEYS.CANDIDATES);
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    sessionStorage.removeItem(GUEST_STATE_KEY);
+  } catch (error) {
+    console.error("Failed to clear guest state from sessionStorage:", error);
+  }
 }

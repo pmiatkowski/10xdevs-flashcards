@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { GenerateFlashcardCandidatesCommand } from "../../../types";
 import { OpenRouterService } from "../../../lib/services/openRouterService";
 import { createSupabaseServerInstance } from "../../../db/supabase.client";
+import { randomUUID } from "crypto";
 
 export const prerender = false;
 
@@ -15,13 +16,12 @@ export async function POST({ request, locals }: APIContext): Promise<Response> {
   const supabase =
     locals.supabase || createSupabaseServerInstance({ headers: request.headers, cookies: locals.cookies });
 
-  // 2. Check authentication
+  // 2. Check authentication status (but allow guests)
   const session = locals.session;
-  if (!session?.user?.id) {
-    return new Response(JSON.stringify({ message: "Unauthorized" }), {
-      status: 401,
-    });
-  }
+  const isGuest = !session?.user?.id;
+  // For guests, we generate candidates without saving them in the database
+  // For authenticated users, we use their real user ID
+  const userId = session?.user?.id || "guest"; // Using 'guest' as marker, not actual DB ID
 
   // 3. Initialize OpenRouter service
   const openRouterService = new OpenRouterService();
@@ -53,13 +53,38 @@ export async function POST({ request, locals }: APIContext): Promise<Response> {
 
   try {
     // 5. Generate candidates
-    const candidates = await openRouterService.generateCandidates(command.sourceText, session.user.id, supabase);
-    console.warn("Generated candidates:", candidates);
-    // 6. Return the generated candidates
-    return new Response(JSON.stringify(candidates), {
-      status: 201,
-      headers: { "Content-Type": "application/json" },
-    });
+    // For guests, we'll generate in-memory candidates
+    if (isGuest) {
+      // For guests, we'll call AI service but handle the results differently
+      const sourceTextHash = await openRouterService.calculateHash(command.sourceText);
+      const aiCandidates = await openRouterService.generateAICandidatesOnly(command.sourceText);
+
+      // Create temporary candidates with random UUIDs that will be stored in client session storage
+      const tempCandidates = aiCandidates.map((candidate) => ({
+        id: randomUUID(),
+        front_text: candidate.front_text,
+        back_text: candidate.back_text,
+        user_id: "guest",
+        source_text_hash: sourceTextHash,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }));
+
+      // Return the temporary candidates for client-side storage
+      return new Response(JSON.stringify(tempCandidates), {
+        status: 201,
+        headers: { "Content-Type": "application/json" },
+      });
+    } else {
+      // For authenticated users, use the regular flow that saves to database
+      const candidates = await openRouterService.generateCandidates(command.sourceText, userId, supabase);
+
+      // Return the generated and saved candidates
+      return new Response(JSON.stringify(candidates), {
+        status: 201,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
   } catch (error) {
     console.error("Error generating candidates:", error);
     return new Response(

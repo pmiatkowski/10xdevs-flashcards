@@ -18,6 +18,14 @@ export interface UpdateAICandidateCommand {
   back_text: string;
 }
 
+export interface ImportGuestCandidatesCommand {
+  candidates: {
+    front_text: string;
+    back_text: string;
+    source_text_hash: string;
+  }[];
+}
+
 // Domain DTOs
 export interface AICandidateDTO {
   id: string;
