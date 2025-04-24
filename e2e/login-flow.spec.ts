@@ -41,8 +41,8 @@ test.describe("Authentication Flow", () => {
     await expect(page).toHaveURL("/login");
 
     // Act - Fill in login credentials and submit the form
-    const testEmail = `${process.env.E2E_USERNAME}`;
-    const testPassword = `${process.env.E2E_PASSWORD}`;
+    const testEmail = process.env.E2E_USERNAME || "test@example.com";
+    const testPassword = process.env.E2E_PASSWORD || "password123";
 
     // Use the login method from the page object
     await loginPage.login(testEmail, testPassword);
@@ -53,8 +53,8 @@ test.describe("Authentication Flow", () => {
     // Additional assertion to ensure we're on the dashboard
     await expect(page).toHaveURL("/");
 
-    // Verify the user's email is visible in the header
-    await expect(page.locator('[data-test-id="user-email-dropdown-desktop"]')).toHaveText(testEmail);
+    // Verify the user's email is visible in the header using the page object method
+    await expect(loginPage.userEmailDropdown).toHaveText(testEmail);
   });
 
   test("should show validation error for invalid email", async ({ page }) => {
@@ -69,7 +69,8 @@ test.describe("Authentication Flow", () => {
     await loginPage.loginButton.click();
 
     // Assert - Verify validation error appears
-    await expect(page.getByText(/please enter a valid email address/i)).toBeVisible();
+    // Using more specific selector that matches the validation error in the React component
+    await expect(page.getByText("Please enter a valid email address")).toBeVisible();
   });
 
   test("should show validation error for empty password", async ({ page }) => {
@@ -80,9 +81,17 @@ test.describe("Authentication Flow", () => {
 
     // Act - Fill email but leave password empty and submit
     await loginPage.emailInput.fill("test@example.com");
+    // Clear password field to ensure it's empty
+    await loginPage.passwordInput.fill("");
     await loginPage.loginButton.click();
 
     // Assert - Verify validation error appears
-    await expect(page.getByText(/password is required/i)).toBeVisible();
+    // Using role='alert' to find the error message which is more reliable
+    const errorMessage = page.getByRole("alert").filter({ hasText: /password/i });
+    await expect(errorMessage).toBeVisible();
+
+    // Additionally verify text content contains our expected message
+    const errorText = await errorMessage.textContent();
+    expect(errorText).toContain("Password must be at least 4 characters");
   });
 });
