@@ -58,6 +58,16 @@ const initialState: ReviewSessionState = {
   isSessionComplete: false,
 };
 
+// Fisher-Yates shuffle algorithm
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
 export function useReviewSession() {
   const [state, setState] = useState<ReviewSessionState>(initialState);
 
@@ -70,7 +80,7 @@ export function useReviewSession() {
 
       const response = await fetch("/api/flashcards");
       if (!response.ok) {
-        throw new Error("Failed to fetch flashcards");
+        throw new Error("Failed to load flashcards");
       }
       const data = await response.json();
 
@@ -83,17 +93,20 @@ export function useReviewSession() {
         throw new NoCardsAvailableError();
       }
 
+      // Shuffle the cards before initializing the queue
+      const shuffledCards = shuffleArray(dueFlashcards);
+
       setState((prev) => ({
         ...prev,
         isLoading: false,
         allFlashcards: data.data,
-        reviewQueue: dueFlashcards,
+        reviewQueue: shuffledCards,
       }));
     } catch (error) {
       setState((prev) => ({
         ...prev,
         isLoading: false,
-        error: formatApiError(error),
+        error: error instanceof NoCardsAvailableError ? error.message : "Failed to load flashcards",
       }));
     }
   }, [srService, storageService]);
@@ -103,12 +116,17 @@ export function useReviewSession() {
   }, [fetchAndInitializeSession]);
 
   const showAnswer = useCallback(() => {
-    setState((prev) => ({ ...prev, isBackVisible: true }));
+    setState((prev) => {
+      if (prev.isSessionComplete) return prev;
+      return { ...prev, isBackVisible: true };
+    });
   }, []);
 
   const handleRating = useCallback(
     (rating: number) => {
       setState((prev) => {
+        if (prev.isSessionComplete || !prev.isBackVisible) return prev;
+
         const currentCard = prev.reviewQueue[prev.currentCardIndex];
         if (!currentCard) return prev;
 
@@ -141,11 +159,9 @@ export function useReviewSession() {
   );
 
   const resetSession = useCallback(async () => {
-    setState(() => ({ ...initialState })); // Reset to initial state completely
+    setState(() => ({ ...initialState }));
     try {
-      // Clear any existing SR state for a fresh start
       storageService.clearState();
-      // Fetch and initialize session
       await fetchAndInitializeSession();
     } catch (error) {
       setState((prev) => ({

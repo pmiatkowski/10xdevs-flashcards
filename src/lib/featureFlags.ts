@@ -1,15 +1,18 @@
 export type Env = "local" | "integration" | "prod";
-export type FeatureName = "settings";
+export type FeatureName = "settings" | "forgot-password";
 
 export const flagConfig: Record<Env, Record<FeatureName, boolean>> = {
   local: {
     settings: true,
+    "forgot-password": false,
   },
   integration: {
     settings: true,
+    "forgot-password": true,
   },
   prod: {
     settings: true,
+    "forgot-password": false,
   },
 } as const;
 

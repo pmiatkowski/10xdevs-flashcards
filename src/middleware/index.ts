@@ -9,7 +9,7 @@ const PUBLIC_PATHS = [
   "/",
   "/login",
   "/register",
-  "/forgot-password",
+  // "/forgot-password", - We'll check this with feature flag
   "/reset-password",
   // Auth API endpoints
   "/api/auth/login",
@@ -25,6 +25,11 @@ const PUBLIC_PATHS = [
 const PROTECTED_ROUTES = {
   "/flashcards": null, // null means no feature flag required
   "/settings": "settings", // requires "settings" feature flag
+} as const;
+
+// Feature-flagged public routes
+const FEATURE_FLAGGED_PUBLIC_ROUTES = {
+  "/forgot-password": "forgot-password",
 } as const;
 
 export const onRequest = defineMiddleware(async ({ locals, cookies, url, request, redirect }, next) => {
@@ -49,13 +54,23 @@ export const onRequest = defineMiddleware(async ({ locals, cookies, url, request
     locals.session = session;
     locals.user = user;
 
+    // Check feature-flagged public routes
+    const publicFeatureFlag = FEATURE_FLAGGED_PUBLIC_ROUTES[url.pathname as keyof typeof FEATURE_FLAGGED_PUBLIC_ROUTES];
+    if (publicFeatureFlag) {
+      if (!isFeatureEnabled(publicFeatureFlag)) {
+        logger.info(`Feature ${publicFeatureFlag} is disabled for route ${url.pathname}`);
+        return redirect("/login");
+      }
+      return next();
+    }
+
     // Always allow public paths
     if (PUBLIC_PATHS.includes(url.pathname)) {
       return next();
     }
 
     // Redirect authenticated users away from auth pages
-    if (user && ["/login", "/register", "/forgot-password", "/reset-password"].includes(url.pathname)) {
+    if (user && ["/login", "/register", "/reset-password"].includes(url.pathname)) {
       return redirect("/");
     }
 

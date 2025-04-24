@@ -1,17 +1,16 @@
 import type { APIRoute } from "astro";
-import { z } from "zod";
-
-const resetPasswordSchema = z.object({
-  password: z.string().min(4, "Password must be at least 4 characters"),
-  token: z.string().min(1, "Reset token is required"),
-});
+import { resetPasswordSchema } from "@/lib/validation/auth";
 
 export const prerender = false;
 
 export const POST: APIRoute = async ({ request, locals }) => {
   try {
     const body = await request.json();
-    const { password, token } = resetPasswordSchema.parse(body);
+    // We only need newPassword and token for the API call
+    const { token, newPassword } = resetPasswordSchema
+      .pick({ newPassword: true })
+      .extend({ token: z.string().min(1, "Reset token is required") })
+      .parse(body);
 
     const { error } = await locals.supabase.auth.exchangeCodeForSession(token);
 
@@ -28,7 +27,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     }
 
     const { error: updateError } = await locals.supabase.auth.updateUser({
-      password: password,
+      password: newPassword,
     });
 
     if (updateError) {

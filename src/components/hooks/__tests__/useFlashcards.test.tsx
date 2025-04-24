@@ -190,18 +190,31 @@ describe("useFlashcards", () => {
 
       expect(result.current.isLoading).toBe(false);
 
-      // Enable edit mode
+      // Enable edit mode and validate front text
       await act(async () => {
         result.current.handleEditToggle("1", true);
-      });
-
-      // Change text to exceed limit
-      await act(async () => {
         result.current.handleEditChange("1", "front", "a".repeat(201));
       });
 
-      const flashcard = result.current.flashcards.find((f) => f.id === "1");
+      let flashcard = result.current.flashcards.find((f) => f.id === "1");
       expect(flashcard?.validationErrors?.front).toBe("Front text must be 200 characters or less");
+
+      // Validate back text
+      await act(async () => {
+        result.current.handleEditChange("1", "back", "a".repeat(501));
+      });
+
+      flashcard = result.current.flashcards.find((f) => f.id === "1");
+      expect(flashcard?.validationErrors?.back).toBe("Back text must be 500 characters or less");
+
+      // Verify validation errors clear when text is valid
+      await act(async () => {
+        result.current.handleEditChange("1", "front", "Valid front");
+        result.current.handleEditChange("1", "back", "Valid back");
+      });
+
+      flashcard = result.current.flashcards.find((f) => f.id === "1");
+      expect(flashcard?.validationErrors).toBeUndefined();
     });
 
     it("should save valid edits", async () => {
@@ -320,6 +333,50 @@ describe("useFlashcards", () => {
           offset: 20,
         })
       );
+    });
+  });
+
+  describe("loading states", () => {
+    it("should show loading state during API calls", async () => {
+      const mockResponse = { data: [], total: 0 };
+      // Set up a delayed response to test loading state
+      vi.mocked(flashcardsService.getFlashcards).mockImplementationOnce(
+        () => new Promise((resolve) => setTimeout(() => resolve(mockResponse), 100))
+      );
+
+      const { result } = renderHook(() => useFlashcards());
+
+      // Initially should be loading
+      expect(result.current.isLoading).toBe(true);
+
+      // Wait for the delayed response
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 150));
+      });
+
+      // Should no longer be loading after response
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    it("should handle loading state during refresh", async () => {
+      const mockResponse = { data: [], total: 0 };
+      vi.mocked(flashcardsService.getFlashcards).mockResolvedValue(mockResponse);
+
+      const { result } = renderHook(() => useFlashcards());
+
+      // Wait for initial load
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(result.current.isLoading).toBe(false);
+
+      // Trigger a refresh
+      await act(async () => {
+        await result.current.loadFlashcards();
+      });
+
+      expect(flashcardsService.getFlashcards).toHaveBeenCalledTimes(2);
     });
   });
 });

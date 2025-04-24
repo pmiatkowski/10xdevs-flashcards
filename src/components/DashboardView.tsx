@@ -591,7 +591,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ isAuthenticated })
           </div>
         )}
 
-        {!isAuthenticated && showLoginPrompt && candidates.length > 0 && <CallToActionLogin />}
+        {!isAuthenticated && showLoginPrompt && candidates.length > 0 && (
+          <div className="mt-8">
+            <CallToActionLogin />
+          </div>
+        )}
 
         {isSavingGuestCandidates && (
           <>
@@ -668,14 +672,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ isAuthenticated })
               isBulkLoading={isBulkLoading}
               isAuthenticated={isAuthenticated}
             />
-          </div>
-        )}
-
-        {!isSavingGuestCandidates && !isLoadingGeneration && !generationError && candidates.length === 0 && (
-          <div className="text-center p-8 border border-dashed border-gray-300 dark:border-gray-700 rounded-lg mt-6">
-            <p className="text-gray-500 dark:text-gray-400">
-              No flashcard candidates generated yet. Paste your text above and click &quot;Generate Flashcards&quot;.
-            </p>
           </div>
         )}
       </div>

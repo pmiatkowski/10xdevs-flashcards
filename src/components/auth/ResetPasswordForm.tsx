@@ -1,42 +1,47 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
+import { LoadingButton } from "@/components/ui/loading-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { z } from "zod";
+import { resetPasswordSchema } from "@/lib/validation/auth";
 
-const resetPasswordSchema = z
-  .object({
-    newPassword: z.string().min(4, "Password must be at least 4 characters"),
-    confirmPassword: z.string().min(1, "Please confirm your password"),
-  })
-  .refine((data) => data.newPassword === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ["confirmPassword"],
-  });
-
-interface ResetPasswordFormProps {
-  token: string;
+interface ResetPasswordFormData {
+  newPassword: string;
+  confirmPassword: string;
 }
 
-export const ResetPasswordForm = ({ token }: ResetPasswordFormProps) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [data, setData] = useState({
+export const ResetPasswordForm = () => {
+  const [data, setData] = useState<ResetPasswordFormData>({
     newPassword: "",
     confirmPassword: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Get token from URL
+  const token = new URLSearchParams(window.location.search).get("token");
+
+  if (!token) {
+    return (
+      <div className="text-center space-y-4">
+        <p className="text-red-500">Invalid reset link. Please request a new password reset.</p>
+        <a href="/forgot-password" className="text-primary hover:underline">
+          Go to Forgot Password
+        </a>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
+    if (isLoading) return;
 
     try {
-      // Validate the form data
       const validData = resetPasswordSchema.parse(data);
       setIsLoading(true);
 
-      // Send reset password request
       const response = await fetch("/api/auth/reset-password", {
         method: "POST",
         headers: {
@@ -58,39 +63,20 @@ export const ResetPasswordForm = ({ token }: ResetPasswordFormProps) => {
         return;
       }
 
-      // Show success message and redirect to login
       toast.success("Password reset successfully");
       window.location.href = "/login";
     } catch (err) {
       if (err instanceof z.ZodError) {
         const fieldErrors: Record<string, string> = {};
         err.errors.forEach((error) => {
-          if (error.path[0]) {
-            fieldErrors[error.path[0].toString()] = error.message;
+          if (error.path) {
+            fieldErrors[error.path[0]] = error.message;
           }
         });
         setErrors(fieldErrors);
-      } else {
-        toast.error("An unexpected error occurred");
       }
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors((prev) => {
-        const newErrors = { ...prev };
-        newErrors[name] = "";
-        return newErrors;
-      });
     }
   };
 
@@ -100,70 +86,53 @@ export const ResetPasswordForm = ({ token }: ResetPasswordFormProps) => {
         <div>
           <p className="text-muted-foreground mb-4">Enter your new password below.</p>
         </div>
-
         <div className="space-y-2">
           <Label htmlFor="newPassword">New Password</Label>
           <Input
             id="newPassword"
-            name="newPassword"
             type="password"
             value={data.newPassword}
-            onChange={handleChange}
+            onChange={(e) => setData({ ...data, newPassword: e.target.value })}
             placeholder="Enter your new password"
+            aria-invalid={!!errors.newPassword}
+            aria-describedby={errors.newPassword ? "newPassword-error" : undefined}
             disabled={isLoading}
-            aria-describedby={errors.newPassword ? "new-password-error" : undefined}
           />
           {errors.newPassword && (
-            <p id="new-password-error" className="text-sm text-red-500">
+            <p id="newPassword-error" className="text-sm text-destructive">
               {errors.newPassword}
             </p>
           )}
         </div>
-
         <div className="space-y-2">
-          <Label htmlFor="confirmPassword">Confirm New Password</Label>
+          <Label htmlFor="confirmPassword">Confirm Password</Label>
           <Input
             id="confirmPassword"
-            name="confirmPassword"
             type="password"
             value={data.confirmPassword}
-            onChange={handleChange}
-            placeholder="Confirm your new password"
+            onChange={(e) => setData({ ...data, confirmPassword: e.target.value })}
+            placeholder="Confirm your password"
+            aria-invalid={!!errors.confirmPassword}
+            aria-describedby={errors.confirmPassword ? "confirmPassword-error" : undefined}
             disabled={isLoading}
-            aria-describedby={errors.confirmPassword ? "confirm-password-error" : undefined}
           />
           {errors.confirmPassword && (
-            <p id="confirm-password-error" className="text-sm text-red-500">
+            <p id="confirmPassword-error" className="text-sm text-destructive">
               {errors.confirmPassword}
             </p>
           )}
         </div>
       </div>
-
       <div className="space-y-4">
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? (
-            <>
-              <svg
-                className="animate-spin -ml-1 mr-2 h-4 w-4"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
-              Resetting password...
-            </>
-          ) : (
-            "Reset Password"
-          )}
-        </Button>
-
+        <LoadingButton
+          type="submit"
+          className="w-full"
+          disabled={isLoading}
+          isLoading={isLoading}
+          loadingText="Updating password..."
+        >
+          Update Password
+        </LoadingButton>
         <div className="text-center">
           <a href="/login" className="text-sm text-primary hover:underline">
             Back to Sign In

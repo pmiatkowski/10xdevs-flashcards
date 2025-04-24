@@ -1,47 +1,56 @@
 import { useEffect } from "react";
+import { useCallback } from "react";
 
 interface UseReviewKeyboardProps {
-  isBackVisible: boolean;
-  showAnswer: () => void;
-  handleRating: (rating: number) => void;
+  onShowAnswer: () => void;
+  onMarkAnswer?: (rating: "easy" | "medium" | "hard") => void;
+  isAnswerShown: boolean;
 }
 
-export function useReviewKeyboard({ isBackVisible, showAnswer, handleRating }: UseReviewKeyboardProps) {
-  useEffect(() => {
-    const handleKeyPress = (event: KeyboardEvent) => {
-      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+export const useReviewKeyboard = ({ onShowAnswer, onMarkAnswer, isAnswerShown }: UseReviewKeyboardProps) => {
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      // Ignore keyboard events when focused on input elements
+      if (document.activeElement?.tagName === "INPUT" || document.activeElement?.tagName === "TEXTAREA") {
         return;
       }
 
-      switch (event.key) {
+      switch (e.key) {
         case " ":
-          event.preventDefault();
-          if (!isBackVisible) {
-            showAnswer();
+          e.preventDefault();
+          if (!isAnswerShown) {
+            onShowAnswer();
           }
           break;
         case "1":
-        case "h":
-          if (isBackVisible) {
-            handleRating(1);
+          if (isAnswerShown && onMarkAnswer) {
+            onMarkAnswer("easy");
           }
           break;
         case "2":
-        case "g":
-          if (isBackVisible) {
-            handleRating(2);
+          if (isAnswerShown && onMarkAnswer) {
+            onMarkAnswer("medium");
           }
           break;
         case "3":
-        case "e":
-          if (isBackVisible) {
-            handleRating(3);
+          if (isAnswerShown && onMarkAnswer) {
+            onMarkAnswer("hard");
           }
           break;
       }
-    };
+    },
+    [onShowAnswer, onMarkAnswer, isAnswerShown]
+  );
 
-    window.addEventListener("keydown", handleKeyPress);
-    return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [isBackVisible, showAnswer, handleRating]);
-}
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleKeyDown]);
+
+  // Return the handler function for testing purposes
+  return {
+    handleKeyDown,
+  };
+};

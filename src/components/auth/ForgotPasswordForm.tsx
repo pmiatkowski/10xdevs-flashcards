@@ -89,10 +89,11 @@ export const ForgotPasswordForm = () => {
             }}
             placeholder="Enter your email"
             disabled={isLoading}
+            aria-invalid={error ? "true" : undefined}
             aria-describedby={error ? "email-error" : undefined}
           />
           {error && (
-            <p id="email-error" className="text-sm text-red-500">
+            <p id="email-error" data-testid="email-error" className="text-sm text-red-500">
               {error}
             </p>
           )}

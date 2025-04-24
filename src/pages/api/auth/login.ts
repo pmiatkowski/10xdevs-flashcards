@@ -1,10 +1,5 @@
 import type { APIRoute } from "astro";
-import { z } from "zod";
-
-const loginSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(1, "Password is required"),
-});
+import { loginSchema } from "@/lib/validation/auth";
 
 export const prerender = false;
 

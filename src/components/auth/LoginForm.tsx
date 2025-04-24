@@ -1,62 +1,71 @@
 /* eslint-disable react/display-name */
-import { memo } from "react";
-import { Button } from "@/components/ui/button";
+import { memo, useState } from "react";
 import { FormField } from "./FormField";
-import { useLoginForm } from "@/components/hooks/useLoginForm";
+import { FormWrapper } from "./FormWrapper";
+import { LoadingButton } from "@/components/ui/loading-button";
+import { loginSchema, useLoginForm } from "@/components/hooks/useLoginForm";
+import { z } from "zod";
+import { isFeatureEnabled } from "@/lib/featureFlags";
 
 export const LoginForm = memo(() => {
-  const { isLoading, data, errors, handleChange, handleSubmit } = useLoginForm();
+  const { isLoading, handleLoginSubmit } = useLoginForm();
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const isForgotPasswordEnabled = isFeatureEnabled("forgot-password");
+
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const data = {
+      email: formData.get("email") as string,
+      password: formData.get("password") as string,
+    };
+
+    try {
+      const validatedData = await loginSchema.parseAsync(data);
+      setErrors({});
+      await handleLoginSubmit(validatedData);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const fieldErrors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          const field = err.path[0] as string;
+          fieldErrors[field] = err.message;
+        });
+        setErrors(fieldErrors);
+      }
+    }
+  };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+    <FormWrapper onSubmit={onSubmit} isSubmitting={isLoading}>
       <FormField
         label="Email"
         name="email"
         type="email"
-        data-testid="email-input"
-        value={data.email}
-        onChange={handleChange}
         placeholder="Enter your email"
-        disabled={isLoading}
         error={errors.email}
+        data-testid="email-input"
+        aria-invalid={!!errors.email}
       />
-
       <FormField
         label="Password"
         name="password"
         type="password"
-        data-testid="password-input"
-        value={data.password}
-        onChange={handleChange}
         placeholder="Enter your password"
-        disabled={isLoading}
         error={errors.password}
+        data-testid="password-input"
+        aria-invalid={!!errors.password}
       />
-
       <div className="space-y-4">
-        <Button type="submit" className="w-full" disabled={isLoading} data-testid="signin-button">
-          {isLoading ? (
-            <>
-              <svg
-                className="animate-spin -ml-1 mr-2 h-4 w-4"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
-              Signing in...
-            </>
-          ) : (
-            "Sign In"
-          )}
-        </Button>
-
+        <LoadingButton
+          type="submit"
+          isLoading={isLoading}
+          loadingText="Signing in..."
+          data-testid="signin-button"
+          className="w-full"
+        >
+          Sign In
+        </LoadingButton>
         <div className="text-center space-y-2">
           <p className="text-sm text-muted-foreground">
             Don&apos;t have an account?{" "}
@@ -64,13 +73,15 @@ export const LoginForm = memo(() => {
               Sign up
             </a>
           </p>
-          <p className="text-sm text-muted-foreground">
-            <a href="/forgot-password" className="text-primary hover:underline">
-              Forgot your password?
-            </a>
-          </p>
+          {isForgotPasswordEnabled && (
+            <p className="text-sm text-muted-foreground">
+              <a href="/forgot-password" className="text-primary hover:underline">
+                Forgot your password?
+              </a>
+            </p>
+          )}
         </div>
       </div>
-    </form>
+    </FormWrapper>
   );
 });

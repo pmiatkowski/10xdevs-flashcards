@@ -1,17 +1,20 @@
 import type { APIRoute } from "astro";
 import { z } from "zod";
-
-const registerSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(4, "Password must be at least 4 characters"),
-});
+import { emailSchema, passwordSchema } from "@/lib/validation/auth";
 
 export const prerender = false;
 
 export const POST: APIRoute = async ({ request, locals }) => {
   try {
     const body = await request.json();
-    const { email, password } = registerSchema.parse(body);
+    // Create a new schema without confirmPassword for API validation
+    const apiSchema = z.object({
+      email: emailSchema,
+      password: passwordSchema,
+    });
+
+    const validData = apiSchema.parse(body);
+    const { email, password } = validData;
 
     const { data, error } = await locals.supabase.auth.signUp({
       email,
