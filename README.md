@@ -1,6 +1,6 @@
 # AI Flashcards
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) <!-- Placeholder: Update if license differs -->
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
 [![Node Version](https://img.shields.io/badge/node-22.14.0-blue.svg)](.nvmrc)
 
 ## Table of Contents
