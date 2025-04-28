@@ -3,7 +3,7 @@ import { z } from "zod";
 import type { GenerateFlashcardCandidatesCommand } from "../../../types";
 import { OpenRouterService } from "../../../lib/services/openRouterService";
 import { createSupabaseServerInstance } from "../../../db/supabase.client";
-import { randomUUID } from "crypto";
+import { v4 } from "uuid";
 
 export const prerender = false;
 
@@ -61,7 +61,7 @@ export async function POST({ request, locals }: APIContext): Promise<Response> {
 
       // Create temporary candidates with random UUIDs that will be stored in client session storage
       const tempCandidates = aiCandidates.map((candidate) => ({
-        id: randomUUID(),
+        id: v4(),
         front_text: candidate.front_text,
         back_text: candidate.back_text,
         user_id: "guest",
